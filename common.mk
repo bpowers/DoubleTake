@@ -17,7 +17,7 @@ WARNFLAGS := -pedantic -Wvariadic-macros \
              -Wno-unused-variable
 
 # Default flags
-CFLAGS   += -g -O2 -fPIC $(WARNFLAGS)
+CFLAGS   += -g -O0 -fPIC $(WARNFLAGS)
 CXXFLAGS += -std=c++11 $(CFLAGS)
 LDFLAGS  += $(addprefix -l,$(LIBS))
 
