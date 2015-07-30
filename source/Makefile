@@ -11,8 +11,8 @@ CXXFLAGS += -I$(ROOT)/include -I$(ROOT)/heaplayers \
             -fno-omit-frame-pointer \
             -DDETECT_OVERFLOW \
             -DDETECT_USAGE_AFTER_FREE \
-            -DDEBUG_LEVEL=3 \
-#            -DDETECT_MEMORY_LEAKS
+            -DDEBUG_LEVEL=0 \
+#            -DDETECT_MEMORY_LEAKS \
 #            -DDEBUG_ROLLBACK
 
 PREREQS := $(ROOT)/heaplayers
