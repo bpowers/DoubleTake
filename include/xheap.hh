@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "real.hh"
 #include "log.hh"
 #include "mm.hh"
 #include "xdefines.hh"
@@ -43,7 +44,7 @@ public:
     ptr = MM::mmapAllocatePrivate(startsize + metasize, startHeap);
 
     // Initialize the lock.
-    pthread_mutex_init(&_lock, NULL);
+    Real::pthread_mutex_init(&_lock, NULL);
 
     // Initialize the following content according the values of xpersist class.
     _start = (char*)((intptr_t)ptr + metasize);
@@ -139,9 +140,9 @@ public:
   }
 
 private:
-  void lock() { pthread_mutex_lock(&_lock); }
+  void lock() { Real::pthread_mutex_lock(&_lock); }
 
-  void unlock() { pthread_mutex_unlock(&_lock); }
+  void unlock() { Real::pthread_mutex_unlock(&_lock); }
 
   void sanityCheck() { REQUIRE(_magic == 0xCAFEBABE, "Sanity check failed for xheap"); }
 
