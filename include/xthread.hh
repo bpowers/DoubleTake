@@ -408,10 +408,9 @@ public:
       	list->recordSyncEvent(E_SYNC_MUTEX_LOCK, ret);
      		PRINF("Thread %d recording: mutex_lock at mutex %p realMutex %p list %p\n", current->index, mutex, realMutex, list);
 			}
-    } 
-		else if (!current->disablecheck) {
+    } else if (!current->disablecheck) {
       // PRINF("synceventlist get mutex at %p list %p\n", mutex, list);
-     PRINF("REPLAY: Thread %d: mutex_lock at mutex %p list %p.\n", current->index, mutex, list);
+      PRINF("REPLAY: Thread %d: mutex_lock at mutex %p list %p.\n", current->index, mutex, list);
       assert(list != NULL);
 
 			/* Peek the synchronization event (first event in the thread), it will confirm the following things
@@ -436,9 +435,19 @@ public:
     return ret;
   }
 
-  int mutex_lock(pthread_mutex_t* mutex) { return do_mutex_lock(mutex, E_SYNC_MUTEX_LOCK); }
+  int mutex_lock(pthread_mutex_t* mutex) {
+    if (current->disablecheck)
+      return Real::pthread_mutex_lock((pthread_mutex_t *)mutex);
+    else
+      return do_mutex_lock(mutex, E_SYNC_MUTEX_LOCK);
+  }
 
-  int mutex_trylock(pthread_mutex_t* mutex) { return do_mutex_lock(mutex, E_SYNC_MUTEX_TRY_LOCK); }
+  int mutex_trylock(pthread_mutex_t* mutex) {
+    if (current->disablecheck)
+      return Real::pthread_mutex_trylock((pthread_mutex_t *)mutex);
+    else
+      return do_mutex_lock(mutex, E_SYNC_MUTEX_TRY_LOCK);
+  }
 
   int mutex_unlock(pthread_mutex_t* mutex) {
     int ret = 0;
@@ -450,8 +459,7 @@ public:
 
 			// Now the thread is safe to be interrupted.
   		setThreadSafe();
-    } 
-		else if(!current->disablecheck) {
+    } else if(!current->disablecheck) {
       SyncEventList* list = getSyncEventList(mutex, sizeof(pthread_mutex_t));
       PRDBG("mutex_unlock at mutex %p list %p\n", mutex, list);
       //	PRINF("mutex_unlock at mutex %p list %p\n", mutex, list);
@@ -460,6 +468,8 @@ public:
         _sync.signalNextThread(nextEvent);
       }
       PRDBG("mutex_unlock at mutex %p list %p done\n", mutex, list);
+    } else {
+      Real::pthread_mutex_unlock(mutex);
     }
     // WARN("mutex_unlock mutex %p\n", mutex);
     return ret;
