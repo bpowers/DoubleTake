@@ -57,7 +57,7 @@ public:
   void initialize() {
     // Install a handler to intercept SEGV signals (used for trapping initial reads and
     // writes to pages).
-    installSignalHandler();
+    //installSignalHandler();
 
     // Call _pheap so that xheap.h can be initialized at first and then can work normally.
     _heapBegin =
