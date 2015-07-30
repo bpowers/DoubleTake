@@ -2,9 +2,23 @@
 CC  := clang
 CXX := clang++
 
+# echo from modern GNU coreutils needs an explicit -e, otherwise it
+# doesn't unescape control characters (like text coloring +
+# formatting)
+ECHO ?= echo -e
+
+WARNFLAGS := -pedantic -Wvariadic-macros \
+             -Wformat -Wall -Wextra -Wundef -Wpointer-arith \
+             -Wcast-qual -Wwrite-strings -Wsign-compare \
+             -Wstrict-aliasing=2 -Wno-unused-parameter \
+             -Werror -Wno-error=unused-function \
+             -Wno-gnu-zero-variadic-macro-arguments \
+             -Wno-nested-anon-types -Wno-c99-extensions \
+             -Wno-unused-variable
+
 # Default flags
-CFLAGS   ?= -g -O2
-CXXFLAGS ?= $(CFLAGS)
+CFLAGS   += -g -O2 -fPIC $(WARNFLAGS)
+CXXFLAGS += -std=c++11 $(CFLAGS)
 LDFLAGS  += $(addprefix -l,$(LIBS))
 
 # Default source and object files
@@ -32,10 +46,10 @@ LOG_SUFFIX := "\033[0m"
 # Build all targets by default
 all:: $(TARGETS)
 
-# Clean up after a bild
+# Clean up after a build
 clean::
 	@for t in $(TARGETS); do \
-	echo $(LOG_PREFIX) Cleaning $$t $(LOG_SUFFIX); \
+	$(ECHO) $(LOG_PREFIX) Cleaning $$t $(LOG_SUFFIX); \
 	done
 	@rm -rf $(TARGETS) obj
 
@@ -44,24 +58,24 @@ clean::
 
 # Compile a C++ source file (and generate its dependency rules)
 obj/%.o: %.cpp $(PREREQS)
-	@echo $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
+	@$(ECHO) $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
 	@mkdir -p obj
 	@$(CXX) $(CXXFLAGS) -MMD -MP -o $@ -c $<
 
 # Compile a C source file (and generate its dependency rules)
 obj/%.o: %.c $(PREREQS)
-	@echo $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
+	@$(ECHO) $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
 	@mkdir -p obj
 	@$(CC) $(CFLAGS) -MMD -MP -o $@ -c $<
 
 # Link a shared library 
 $(SHARED_LIB_TARGETS): $(OBJS)
-	@echo $(LOG_PREFIX) Linking $@ $(LOG_SUFFIX)
+	@$(ECHO) $(LOG_PREFIX) Linking $@ $(LOG_SUFFIX)
 	@$(CXX) -shared $(LDFLAGS) -o $@ $^
 
 # Link binary targets
 $(OTHER_TARGETS): $(OBJS)
-	@echo $(LOG_PREFIX) Linking $@ $(LOG_SUFFIX)
+	@$(ECHO) $(LOG_PREFIX) Linking $@ $(LOG_SUFFIX)
 	@$(CXX) $(LDFLAGS) -o $@ $^
 
 # Include dependency rules for all objects
