@@ -1,3 +1,8 @@
+# prettify output
+ifneq ($V, 1)
+MAKEFLAGS  = -s
+endif
+
 ROOT := .
 DIRS := source tests
 
@@ -7,4 +12,4 @@ TAGS: include/*.hh sources/*.cpp
 	(find include -name '*.hh' && find source -name '*.cpp') | xargs etags -a
 
 format:
-	@clang-format -i include/*.hh source/*.cpp
+	clang-format -i include/*.hh source/*.cpp

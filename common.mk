@@ -22,14 +22,14 @@ CXXFLAGS += -std=c++11 $(CFLAGS)
 LDFLAGS  += $(addprefix -l,$(LIBS))
 
 # Default source and object files
-SRCS    ?= $(wildcard *.cpp) $(wildcard *.c)
-OBJS    ?= $(addprefix obj/,$(patsubst %.cpp,%.o,$(patsubst %.c,%.o,$(SRCS))))
+SRCS     ?= $(wildcard *.cpp) $(wildcard *.c)
+OBJS     ?= $(addprefix obj/,$(patsubst %.cpp,%.o,$(patsubst %.c,%.o,$(SRCS))))
 
-# Targets to build recirsively into $(DIRS)
+# Targets to build recursively into $(DIRS)
 RECURSIVE_TARGETS  ?= all clean bench test
 
 # Build in parallel
-MAKEFLAGS := -j
+MAKEFLAGS += -j$(shell cat /proc/cpuinfo | grep -c processor)
 
 # Targets separated by type
 SHARED_LIB_TARGETS := $(filter %.so, $(TARGETS))
@@ -48,10 +48,10 @@ all:: $(TARGETS)
 
 # Clean up after a build
 clean::
-	@for t in $(TARGETS); do \
+	for t in $(TARGETS); do \
 	$(ECHO) $(LOG_PREFIX) Cleaning $$t $(LOG_SUFFIX); \
 	done
-	@rm -rf $(TARGETS) obj
+	rm -rf $(TARGETS) obj
 
 # Prevent errors if files named all, clean, bench, or test exist
 .PHONY: all clean bench test
@@ -59,30 +59,30 @@ clean::
 # Compile a C++ source file (and generate its dependency rules)
 obj/%.o: %.cpp $(PREREQS)
 	@$(ECHO) $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
-	@mkdir -p obj
-	@$(CXX) $(CXXFLAGS) -MMD -MP -o $@ -c $<
+	mkdir -p obj
+	$(CXX) $(CXXFLAGS) -MMD -MP -o $@ -c $<
 
 # Compile a C source file (and generate its dependency rules)
 obj/%.o: %.c $(PREREQS)
 	@$(ECHO) $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
-	@mkdir -p obj
-	@$(CC) $(CFLAGS) -MMD -MP -o $@ -c $<
+	mkdir -p obj
+	$(CC) $(CFLAGS) -MMD -MP -o $@ -c $<
 
 # Link a shared library 
 $(SHARED_LIB_TARGETS): $(OBJS)
 	@$(ECHO) $(LOG_PREFIX) Linking $@ $(LOG_SUFFIX)
-	@$(CXX) -shared $(LDFLAGS) -o $@ $^
+	$(CXX) -shared $(LDFLAGS) -o $@ $^
 
 # Link binary targets
 $(OTHER_TARGETS): $(OBJS)
 	@$(ECHO) $(LOG_PREFIX) Linking $@ $(LOG_SUFFIX)
-	@$(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 # Include dependency rules for all objects
 -include $(OBJS:.o=.d)
 
 # Build any recursive targets in subdirectories
 $(RECURSIVE_TARGETS)::
-	@for dir in $(DIRS); do \
+	for dir in $(DIRS); do \
 	$(MAKE) -C $$dir --no-print-directory $@ MAKEPATH="$(MAKEPATH)/$$dir"; \
 	done
