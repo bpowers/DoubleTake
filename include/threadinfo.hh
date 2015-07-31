@@ -83,7 +83,7 @@ public:
 			// Those information that are only initialized once.
      	tinfo->available = true;
      	tinfo->oldContext.setupBackup(&stackStart[perStackSize * 2 * i]);
-      tinfo->newContext.setupBackup(&stackStart[perStackSize * 2 * i + 1]);
+      tinfo->newContext.setupBackup(&stackStart[perStackSize * 2 * i + perStackSize]);
       tinfo->qlist.initialize(&qbufStart[perQbufSize * i * 2], perQbufSize);
     }
 
