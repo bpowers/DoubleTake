@@ -7,3 +7,4 @@ tests/simple_overflow/obj
 tests/simple_overflow/simple_overflow
 tests/simple_uaf/obj
 tests/simple_uaf/simple_uaf
+*~
