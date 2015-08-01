@@ -16,6 +16,7 @@
 #include "objectheader.hh"
 #include "sentinelmap.hh"
 #include "xdefines.hh"
+#include "xthread.hh"
 
 // Include all of heaplayers
 #define MALLOC_TRACE 0
@@ -205,7 +206,7 @@ public:
 #else
     size_t size = getSize(ptr);
     // Adding this to the quarantine list
-    if(addThreadQuarantineList(ptr, size) == false) {
+    if(!xthread::getInstance().addQuarantineList(ptr, size)) {
       // If an object is too large, we simply freed this object.
       _heap->free(tid, ptr);
     }
