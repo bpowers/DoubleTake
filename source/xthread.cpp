@@ -30,7 +30,7 @@ __thread thread_t* current;
 list_t threadmap::_alivethreads;
 
 int getThreadIndex() {
-  if(!global_isInitPhase()) {
+  if(!doubletake::isInitPhase()) {
     return current->index;
   } else {
     return 0;

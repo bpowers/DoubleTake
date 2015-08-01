@@ -25,58 +25,43 @@
 #include "xrun.hh"
 #include "xthread.hh"
 
+using doubletake::initialized;
 using namespace std;
 
-__attribute__((constructor)) void initRealFunctions() {
-//	printf("calling min_init\n");
-  Real::initializer();
-  funcInitialized = true;
-  if(!initialized) {
-		// Now setup 
-    xrun::getInstance().initialize();
-    initialized = true;
-  }
-}
 
-void initializer() {
-  // Using globals to provide allocation
-  // before initialized.
-  // We can not use stack variable here since different process
-  // may use this to share information.
-  // initialize those library function entries.
-//	fprintf(stderr, "initializer function now\n");
+__attribute__((constructor)) void doubletake_init() {
+  doubletake::__initialize();
 }
 
 __attribute__((destructor)) void finalizer() {
   xrun::getInstance().finalize();
-
-  funcInitialized = false;
 }
 
 typedef int (*main_fn_t)(int, char**, char**);
-main_fn_t real_main;
-
-void exitfunc(void) {
-	PRINT("in the end of exiting now\n");
-}
+static main_fn_t real_main;
 
 // Doubletake's main function
 int doubletake_main(int argc, char** argv, char** envp) {
-  /******** Do doubletake initialization here (runs after ctors) *********/
-//	printf("doubletake_main initializer\n");
-	initializer();
+  int rc;
 
-	// Now start the first epoch
 	xrun::getInstance().epochBegin();
 
-  // Call the program's main function
-  return real_main(argc, argv, envp);
+  rc = real_main(argc, argv, envp);
+
+  // explicitly end the epoch here rather than as a result of static
+  // destructors
+	//xrun::getInstance().epochEnd(true);
+
+  // new epoch for program destruction
+  //xrun::getInstance().epochBegin();
+
+  return rc;
 }
 
 extern "C" int __libc_start_main(main_fn_t, int, char**, void (*)(), void (*)(), void (*)(), void*) __attribute__((weak, alias("doubletake_libc_start_main")));
 
 extern "C" int doubletake_libc_start_main(main_fn_t main_fn, int argc, char** argv, void (*init)(), void (*fini)(), void (*rtld_fini)(), void* stack_end) {
-  // Find the real __libc_start_main
+  // Find the real (or next) __libc_start_main
   auto real_libc_start_main = (decltype(__libc_start_main)*)dlsym(RTLD_NEXT, "__libc_start_main");
   // Save the program's real main function
   real_main = main_fn;

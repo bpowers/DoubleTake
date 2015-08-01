@@ -17,6 +17,7 @@
 
 #include <atomic>
 
+#include "runtime.hh"
 #include "log.hh"
 #include "real.hh"
 #include "threadstruct.hh"
@@ -42,9 +43,10 @@ inline void global_unlockInsideSignalhandler() {
 }
 
 inline void global_initialize() {
-  g_isRollback = false;
-  g_hasRollbacked = false;
-  g_phase = E_SYS_INIT;
+  doubletake::isRollback = false;
+  doubletake::hasRollbacked = false;
+  doubletake::phase = doubletake::E_SYS_INIT;
+
   g_numOfEnds = 0;
 
   Real::pthread_mutex_init(&g_mutex, NULL);
@@ -55,23 +57,13 @@ inline void global_initialize() {
 
 inline void global_setEpochEnd() {
   g_numOfEnds++;
-  g_phase = E_SYS_EPOCH_END;
+  doubletake::phase = doubletake::E_SYS_EPOCH_END;
 }
-
-inline bool global_isInitPhase() { return g_phase == E_SYS_INIT; }
-
-inline bool global_isEpochEnd() { return g_phase == E_SYS_EPOCH_END; }
-
-inline bool global_isRollback() { return g_isRollback; }
-
-inline bool global_isEpochBegin() { return g_phase == E_SYS_EPOCH_BEGIN; }
 
 inline void global_setRollback() {
-  g_isRollback = true;
-  g_hasRollbacked = true;
+  doubletake::isRollback = true;
+  doubletake::hasRollbacked = true;
 }
-
-inline bool global_hasRollbacked() { return g_hasRollbacked; }
 
 inline void global_wakeup() {
   // Wakeup all other threads.
@@ -81,7 +73,7 @@ inline void global_wakeup() {
 inline void global_epochBegin() {
   global_lockInsideSignalhandler();
 
-  g_phase = E_SYS_EPOCH_BEGIN;
+  doubletake::phase = doubletake::E_SYS_EPOCH_BEGIN;
   PRINF("waken up all waiters\n");
   // Wakeup all other threads.
   Real::pthread_cond_broadcast(&g_condWaiters);
@@ -111,7 +103,7 @@ inline void global_checkWaiters() {
 
 // Notify the commiter and wait on the global conditional variable
 inline void global_waitForNotification() {
-  assert(global_isEpochEnd() == true);
+  assert(doubletake::isEpochEnd());
 
   //    printf("waitForNotification, waiters is %d at thread %p\n", g_waiters, pthread_self());
   global_lockInsideSignalhandler();
@@ -124,10 +116,10 @@ inline void global_waitForNotification() {
   }
 
   // Only waken up when it is not the end of epoch anymore.
-  while(global_isEpochEnd()) {
+  while(doubletake::isEpochEnd()) {
     PRINF("waitForNotification before waiting again\n");
     Real::pthread_cond_wait(&g_condWaiters, &g_mutexSignalhandler);
-    PRINF("waitForNotification after waken up. isEpochEnd() %d \n", global_isEpochEnd());
+    PRINF("waitForNotification after waken up. isEpochEnd() %d \n", doubletake::isEpochEnd());
   }
 
   g_waiters--;

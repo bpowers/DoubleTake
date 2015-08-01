@@ -45,12 +45,14 @@ void xrun::initialize() {
   _memory.initialize();
 
   syscallsInitialize();
+
+  doubletake::initialized = true;
 }
 
 void xrun::finalize() {
   //    PRINT("%d: finalize now !!!!!\n", getpid());
   // If we are not in rollback phase, then we should check buffer overflow.
-  if(!global_isRollback()) {
+  if(!doubletake::isRollback) {
 #ifdef DETECT_USAGE_AFTER_FREE
     finalUAFCheck();
 #endif
@@ -71,7 +73,7 @@ void xrun::syscallsInitialize() {
 void xrun::rollback() {
   // If this is the first time to rollback,
   // then we should rollback now.
-  if(global_hasRollbacked()) {
+  if(doubletake::hasRollbacked) {
     PRINF("HAS rolled back, now exiting.\n");
     abort();
   }
@@ -154,7 +156,7 @@ void xrun::epochEnd(bool endOfProgram) {
 
   // if our process has already begun a rollback, proceed no further.
   // This loop terminates when SIGUSR2 is called on this thread.
-  if(global_isRollback()) {
+  if(doubletake::isRollback) {
     // PRINF("in the end of an epoch, endOfProgram %d. global_isRollback true\n", endOfProgram);
     while(1)
       ;
@@ -298,20 +300,20 @@ void xrun::sigusr2Handler(int /* signum */, siginfo_t* /* siginfo */, void* cont
   // Check what is current status of the system.
   // If we are in the end of an epoch, then we save the context somewhere since
   // current thread is going to stop execution in order to commit or rollback.
-  assert(global_isEpochEnd() == true);
+  assert(doubletake::isEpochEnd());
 
   // Wait for notification from the commiter
   global_waitForNotification();
 
   // Check what is the current phase
-  if(global_isEpochBegin()) {
+  if(doubletake::isEpochBegin()) {
     // Current thread is going to enter a new phase
     xthread::getInstance().saveContext((ucontext_t*)context);
     // NOTE: we do not need to reset contexts if we are still inside the signal handleer
     // since the exiting from signal handler can do this automatically.
   } else {
-    PRINF("epochBegin %d rollback %d\n", global_isEpochBegin(), global_isRollback());
-    assert(global_isRollback() == true);
+    PRINF("epochBegin %d rollback %d\n", doubletake::isEpochBegin(), doubletake::isRollback.load());
+    assert(doubletake::isRollback);
 
     // Check where we should park, on my own cond or common cond
     if(isNewThread()) {

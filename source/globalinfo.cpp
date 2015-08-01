@@ -27,14 +27,18 @@
 
 size_t __max_stack_size;
 
-bool funcInitialized = false;
-bool initialized = false;
+namespace doubletake {
+  std::atomic_bool initialized(false);
+  std::atomic_bool trampsInitialized(false);
+
+  std::atomic_bool isRollback(false);
+  std::atomic_bool hasRollbacked(false);
+
+  std::atomic<enum SystemPhase> phase;
+};
 
 // Some global information.
-std::atomic_bool g_isRollback;
-std::atomic_bool g_hasRollbacked;
 std::atomic_int g_numOfEnds;
-std::atomic<enum SystemPhase> g_phase;
 
 pthread_cond_t g_condCommitter;
 pthread_cond_t g_condWaiters;
@@ -49,5 +53,10 @@ bool addThreadQuarantineList(void* ptr, size_t sz) {
 }
 
 void doubletake::__initialize() {
+  doubletake::__trampsInitialize();
+  xrun::getInstance().initialize();
+}
 
+void doubletake::__trampsInitialize() {
+  Real::initializer();
 }

@@ -1,6 +1,9 @@
 #ifndef DOUBLETAKE_DOUBLETAKE_HH
 #define DOUBLETAKE_DOUBLETAKE_HH
 
+#define likely(x)	__builtin_expect(!!(x), 1)
+#define unlikely(x)	__builtin_expect(!!(x), 0)
+
 #include <atomic>
 
 // this is an amalgamation of globalinfo.hh and xrun.hh - it is the
@@ -8,6 +11,9 @@
 // start epochs, end epochs, and detect rollback.
 
 namespace doubletake {
+  extern std::atomic_bool initialized;
+  extern std::atomic_bool trampsInitialized;
+
   extern std::atomic_bool isRollback;
   extern std::atomic_bool hasRollbacked;
 
@@ -26,6 +32,8 @@ namespace doubletake {
   /// some of the interposition functions to get around static
   /// initializer ordering.
   void __initialize();
+  /// initialize just the Real library trampolines
+  void __trampsInitialize();
 
   /// global runtime lock
   void lock();

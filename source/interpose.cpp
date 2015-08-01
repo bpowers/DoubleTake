@@ -29,27 +29,11 @@
 // Install xxmalloc, xxfree, etc. as custom allocator
 #include "wrappers/gnuwrapper.cpp"
 
+using doubletake::initialized;
+using doubletake::trampsInitialized;
+
 using namespace std;
 enum { InitialMallocSize = 1024 * 1024 * 1024 };
-
-size_t __max_stack_size;
-
-bool funcInitialized = false;
-bool initialized = false;
-
-// Some global information.
-std::atomic_bool g_isRollback;
-std::atomic_bool g_hasRollbacked;
-std::atomic_int g_numOfEnds;
-std::atomic<enum SystemPhase> g_phase;
-
-pthread_cond_t g_condCommitter;
-pthread_cond_t g_condWaiters;
-pthread_mutex_t g_mutex;
-pthread_mutex_t g_mutexSignalhandler;
-
-std::atomic_int g_waiters;
-std::atomic_int g_waitersTotal;
 
 // Temporary bump-pointer allocator for malloc() calls before DoubleTake is initialized
 static void* tempmalloc(int size) {
@@ -91,7 +75,7 @@ extern "C" {
       ptr = xmemory::getInstance().malloc(sz);
     }
     if(ptr == NULL) {
-    	fprintf(stderr, "Out of memory with initialized %d!\n", initialized);
+    	fprintf(stderr, "Out of memory with initialized %d!\n", initialized.load());
       ::abort();
     }
 		
@@ -131,7 +115,7 @@ extern "C" {
   /// Threads's synchronization functions.
   // Mutex related functions
   int pthread_mutex_init(pthread_mutex_t* mutex, const pthread_mutexattr_t* attr) {
-    if(!funcInitialized) {
+    if(!initialized) {
       doubletake::__initialize();
     }
     if(initialized)
@@ -312,15 +296,15 @@ extern "C" {
 /* 
 	Avoid printing in the rollback phase.
   int puts(const char* s) {
-    if(!global_isRollback()) {
+    if(!doubletake::isRollback) {
       Real::puts(s);
     }
     return 0;
   }
 
   int printf(const char *format, ...) {
-    PRINT("inside printf. global_isRolback() %d\n", global_isRollback());
-    if(!global_isRollback()) {
+    PRINT("inside printf. global_isRolback() %d\n", doubletake::isRollback);
+    if(!doubletake::isRollback) {
       va_list ap;
       va_start(ap, format);
       vprintf(format, ap);
@@ -330,7 +314,7 @@ extern "C" {
   }
 
   int fprintf(FILE *stream, const char *format, ...) {
-    if(!global_isRollback()) {
+    if(!doubletake::isRollback) {
       va_list ap;
       va_start(ap, format);
       vfprintf(stream, format, ap);
@@ -424,8 +408,8 @@ extern "C" {
   FILE* fopen(const char* filename, const char* modes) {
     //fprintf(stderr, "fopen in libdoubletake\n");
     if(!initialized) {
-			if(!funcInitialized) {
-			  initRealFunctions();
+			if(!trampsInitialized) {
+        doubletake::__trampsInitialize();
 			}
 
       return Real::fopen(filename, modes);
@@ -436,8 +420,8 @@ extern "C" {
   // ostream.open actually calls this function
   FILE* fopen64(const char* filename, const char* modes) {
     if(!initialized) {
-			if(!funcInitialized) {
-			  initRealFunctions();
+			if(!trampsInitialized) {
+        doubletake::__trampsInitialize();
 			}
       return Real::fopen64(filename, modes);
     }
