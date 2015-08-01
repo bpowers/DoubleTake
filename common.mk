@@ -16,8 +16,11 @@ WARNFLAGS := -pedantic -Wvariadic-macros \
              -Wno-nested-anon-types -Wno-c99-extensions \
              -Wno-unused-variable
 
+# cc optimization level
+O ?= 0
+
 # Default flags
-CFLAGS   += -g -O0 -fPIC $(WARNFLAGS)
+CFLAGS   += -g -O$(O) -fPIC $(WARNFLAGS)
 CXXFLAGS += -std=c++11 $(CFLAGS)
 LDFLAGS  += $(addprefix -l,$(LIBS))
 
