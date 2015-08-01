@@ -11,6 +11,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <atomic>
 #include <cstddef>
 #include <iostream>
 #include <fstream>
@@ -36,16 +37,18 @@ bool funcInitialized = false;
 bool initialized = false;
 
 // Some global information.
-bool g_isRollback;
-bool g_hasRollbacked;
-int g_numOfEnds;
-enum SystemPhase g_phase;
+std::atomic_bool g_isRollback;
+std::atomic_bool g_hasRollbacked;
+std::atomic_int g_numOfEnds;
+std::atomic<enum SystemPhase> g_phase;
+
 pthread_cond_t g_condCommitter;
 pthread_cond_t g_condWaiters;
 pthread_mutex_t g_mutex;
 pthread_mutex_t g_mutexSignalhandler;
-int g_waiters;
-int g_waitersTotal;
+
+std::atomic_int g_waiters;
+std::atomic_int g_waitersTotal;
 
 __attribute__((constructor)) void initRealFunctions() {
 //	printf("calling min_init\n");

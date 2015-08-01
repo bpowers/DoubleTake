@@ -14,6 +14,8 @@
 #include <pthread.h>
 #include <stdlib.h>
 
+#include <atomic>
+
 #include "log.hh"
 #include "real.hh"
 #include "threadstruct.hh"
@@ -23,16 +25,18 @@ enum SystemPhase {
   E_SYS_EPOCH_END,   // We are just before commit.
   E_SYS_EPOCH_BEGIN, // We have to start a new epoch when no overflow.
 };
-extern bool g_isRollback;
-extern bool g_hasRollbacked;
-extern int g_numOfEnds;
-extern enum SystemPhase g_phase;
+extern std::atomic_bool g_isRollback;
+extern std::atomic_bool g_hasRollbacked;
+extern std::atomic_int g_numOfEnds;
+extern std::atomic<enum SystemPhase> g_phase;
+
 extern pthread_cond_t g_condCommitter;
 extern pthread_cond_t g_condWaiters;
 extern pthread_mutex_t g_mutex;
 extern pthread_mutex_t g_mutexSignalhandler;
-extern int g_waiters;
-extern int g_waitersTotal;
+
+extern std::atomic_int g_waiters;
+extern std::atomic_int g_waitersTotal;
 
 inline void global_lock() { Real::pthread_mutex_lock(&g_mutex); }
 
