@@ -3,10 +3,11 @@
 
 /*
  * @file   globalinfo.h
- * @brief  some global information about this system, by doing this, we can avoid multiple copies.
- *         Also, it is very important to utilize this to cooperate multiple threads since
- * pthread_kill
- *         actually can not convey additional signal value information.
+ * @brief  some global information about this system, by doing this, we
+ *         can avoid multiple copies.  Also, it is very important to
+ *         utilize this to cooperate multiple threads since
+ *         pthread_kill actually can not convey additional signal
+ *         value information.
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  */
 
@@ -20,15 +21,7 @@
 #include "real.hh"
 #include "threadstruct.hh"
 
-enum SystemPhase {
-  E_SYS_INIT,        // Initialization phase
-  E_SYS_EPOCH_END,   // We are just before commit.
-  E_SYS_EPOCH_BEGIN, // We have to start a new epoch when no overflow.
-};
-extern std::atomic_bool g_isRollback;
-extern std::atomic_bool g_hasRollbacked;
 extern std::atomic_int g_numOfEnds;
-extern std::atomic<enum SystemPhase> g_phase;
 
 extern pthread_cond_t g_condCommitter;
 extern pthread_cond_t g_condWaiters;
