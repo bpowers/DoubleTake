@@ -7,7 +7,7 @@ CXX := clang++
 # formatting)
 ECHO ?= echo -e
 
-WARNFLAGS := -pedantic -Wvariadic-macros \
+WARNFLAGS := -Wvariadic-macros \
              -Wformat -Wall -Wextra -Wundef -Wpointer-arith \
              -Wcast-qual -Wwrite-strings -Wsign-compare \
              -Wstrict-aliasing=2 -Wno-unused-parameter \
@@ -19,20 +19,23 @@ WARNFLAGS := -pedantic -Wvariadic-macros \
 # cc optimization level
 O ?= 0
 
+ARCH ?= amd64
+
 # Default flags
-CFLAGS   += -g -O$(O) -fPIC $(WARNFLAGS)
+CFLAGS   += -g -O$(O) -fPIC -pedantic $(WARNFLAGS)
 CXXFLAGS += -std=c++11 $(CFLAGS)
+ASFLAGS  += -O$(O) $(WARNFLAGS)
 LDFLAGS  += $(addprefix -l,$(LIBS))
 
 # Default source and object files
-SRCS     ?= $(wildcard *.cpp) $(wildcard *.c)
-OBJS     ?= $(addprefix obj/,$(patsubst %.cpp,%.o,$(patsubst %.c,%.o,$(SRCS))))
+SRCS     ?= $(wildcard *.cpp) $(wildcard *.c) $(wildcard *_$(ARCH).s)
+OBJS     ?= $(addprefix obj/,$(patsubst %_$(ARCH).s,%.o,$(patsubst %.cpp,%.o,$(patsubst %.c,%.o,$(SRCS)))))
 
 # Targets to build recursively into $(DIRS)
 RECURSIVE_TARGETS  ?= all clean bench test
 
 # Build in parallel
-MAKEFLAGS += -j$(shell cat /proc/cpuinfo | grep -c processor)
+#MAKEFLAGS += -j$(shell cat /proc/cpuinfo | grep -c processor)
 
 # Targets separated by type
 SHARED_LIB_TARGETS := $(filter %.so, $(TARGETS))
@@ -70,6 +73,12 @@ obj/%.o: %.c $(PREREQS)
 	@$(ECHO) $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
 	mkdir -p obj
 	$(CC) $(CFLAGS) -MMD -MP -o $@ -c $<
+
+# Compile an assembly C source file (and generate its dependency rules)
+obj/%.o: %_$(ARCH).s $(PREREQS)
+	@$(ECHO) $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
+	mkdir -p obj
+	$(CC) $(ASFLAGS) -o $@ -c $<
 
 # Link a shared library 
 $(SHARED_LIB_TARGETS): $(OBJS)
