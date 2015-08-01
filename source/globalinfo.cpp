@@ -48,10 +48,6 @@ pthread_mutex_t g_mutexSignalhandler;
 std::atomic_int g_waiters;
 std::atomic_int g_waitersTotal;
 
-bool addThreadQuarantineList(void* ptr, size_t sz) {
-  return xthread::getInstance().addQuarantineList(ptr, sz);
-}
-
 void doubletake::__initialize() {
   doubletake::__trampsInitialize();
   xrun::getInstance().initialize();
@@ -59,4 +55,8 @@ void doubletake::__initialize() {
 
 void doubletake::__trampsInitialize() {
   Real::initializer();
+}
+
+bool doubletake::quarantine(void *ptr, size_t size) {
+  return xthread::getInstance().addQuarantineList(ptr, size);
 }

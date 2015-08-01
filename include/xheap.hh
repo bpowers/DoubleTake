@@ -75,7 +75,7 @@ public:
   inline void saveHeapMetadata() {
     _positionBackup = _position;
     _remainingBackup = _remaining;
-    PRINF("save heap metadata, _position %p remaining %#lx\n", _position, _remaining);
+    PRINF("save heap metadata, _position %p remaining %#lx", _position, _remaining);
   }
 
   /// We will overlap the metadata with the saved ones
@@ -83,7 +83,7 @@ public:
   inline void recoverHeapMetadata() {
     _position = _positionBackup;
     _remaining = _remainingBackup;
-    PRINF("in recover, now _position %p remaining 0x%lx\n", _position, _remaining);
+    PRINF("in recover, now _position %p remaining 0x%lx", _position, _remaining);
   }
 
   inline void* getHeapStart() { return (void*)_start; }

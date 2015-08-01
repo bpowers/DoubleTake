@@ -17,6 +17,8 @@
 #include "threadmap.hh"
 #include "threadstruct.hh"
 
+static void jumpToFunction(ucontext_t* cxt, unsigned long funcaddr);
+static void rollbackFromSegv();
 
 void xrun::initialize() {
   //    PRINT("xrun: initialization at line %d\n", __LINE__);
@@ -34,7 +36,7 @@ void xrun::initialize() {
   // Initialize the locks and condvar used in epoch switches
   global_initialize();
 
-  installSignalHandler();
+  installSignalHandlers();
 
   // Initialize the internal heap at first.
   InternalHeap::getInstance().initialize();
@@ -74,23 +76,22 @@ void xrun::rollback() {
   // If this is the first time to rollback,
   // then we should rollback now.
   if(doubletake::hasRollbacked) {
-    PRINF("HAS rolled back, now exiting.\n");
-    abort();
+    FATAL("HAS rolled back, now exiting.");
   }
 
   // Rollback all memory before rolling back the context.
   _memory.rollback();
 
-  PRINF("\n\nAFTER MEMORY ROLLBACK!!!\n\n\n");
+  PRINF("AFTER MEMORY ROLLBACK!!!\n");
 
   // We must prepare the rollback, for example, if multiple
   // threads is existing, we must initiate the semaphores for threads
   // Also, we should setup those synchronization event list
   _thread.prepareRollback();
-  PRINF("_thread rollback and actual rollback\n");
+  PRINF("_thread rollback and actual rollback");
 
   // Now we are going to rollback
-  PRINF("\n\nSTARTING ROLLBACK!!!\n\n\n");
+  PRINF("STARTING ROLLBACK!!!\n");
 
   // Now time to rollback myself.
   _thread.checkRollbackCurrent();
@@ -103,20 +104,20 @@ void xrun::epochBegin() {
 
   threadmap::aliveThreadIterator i;
 
-  PRINF("xrun epochBegin, joinning every thread.\n");
+  PRINF("xrun epochBegin, joinning every thread.");
   for(i = threadmap::getInstance().begin(); i != threadmap::getInstance().end(); i++) {
     thread_t* thread = i.getThread();
 
     lock_thread(thread);
 
     if(thread != current && thread->hasJoined) {
-      PRINF("xrun, joining thread %d\n", thread->index);
+      PRINF("xrun, joining thread %d", thread->index);
       thread->status = E_THREAD_EXITING;
       Real::pthread_cond_signal(&thread->cond);
       unlock_thread(thread);
-      PRINF("xrun, actually joining thread %d\n", thread->index);
+      PRINF("xrun, actually joining thread %d", thread->index);
       Real::pthread_join(thread->self, NULL);
-      PRINF("xrun, after joining thread %d\n", thread->index);
+      PRINF("xrun, after joining thread %d", thread->index);
       continue;
     }
     // Since now we are in a new epoch mark all existing threads as old threads
@@ -127,17 +128,17 @@ void xrun::epochBegin() {
 
     unlock_thread(thread);
   }
-  PRINF("xrun epochBegin, joinning every thread done.\n");
+  PRINF("xrun epochBegin, joinning every thread done.");
 
   xthread::runDeferredSyncs();
 
-  PRINF("xrun epochBegin, run deferred synchronizations done.\n");
+  PRINF("xrun epochBegin, run deferred synchronizations done.");
 
   // Now waken up all other threads then threads can do its cleanup.
-  PRINF("getpid %d: xrun::epochBegin, wakeup others. \n", getpid());
+  PRINF("getpid %d: xrun::epochBegin, wakeup others.", getpid());
   global_epochBegin();
 
-  PRINF("getpid %d: xrun::epochBegin\n", getpid());
+  PRINF("getpid %d: xrun::epochBegin", getpid());
 
   // Saving the context of the memory.
   _memory.epochBegin();
@@ -149,7 +150,7 @@ void xrun::epochBegin() {
 /// @brief End a transaction, aborting it if necessary.
 void xrun::epochEnd(bool endOfProgram) {
 
-  fprintf(stderr, "xrun epochEnd\n");
+  PRINF("xrun epochEnd");
 
   // Tell other threads to stop and save context.
   stopAllThreads();
@@ -183,12 +184,12 @@ void xrun::epochEnd(bool endOfProgram) {
 #ifndef EVALUATING_PERF
 // First, attempt to commit.
 #if defined(DETECT_OVERFLOW) && defined(DETECT_MEMORY_LEAKS)
-  PRINF("in the end of an epoch, hasOverflow %d hasMemoryLeak %d\n", hasOverflow, hasMemoryLeak);
+  PRINF("in the end of an epoch, hasOverflow %d hasMemoryLeak %d", hasOverflow, hasMemoryLeak);
   if(hasOverflow || hasMemoryLeak) {
     rollback();
   } else {
 #elif defined(DETECT_OVERFLOW)
-  PRINF("in the end of an epoch, hasOverflow %d\n", hasOverflow);
+  PRINF("in the end of an epoch, hasOverflow %d", hasOverflow);
   if(hasOverflow) {
     rollback();
   } else {
@@ -201,7 +202,7 @@ void xrun::epochEnd(bool endOfProgram) {
 #endif
 #endif
 
-  PRINF("before calling syscalls epochEndWell\n");
+  PRINF("before calling syscalls epochEndWell");
   syscalls::getInstance().epochEndWell();
 
   xthread::getInstance().epochEndWell();
@@ -250,8 +251,8 @@ void xrun::stopAllThreads() {
   global_lock();
 
   // PRINF("EPOCHEBD:Current thread at %p self %p\n", current, pthread_self());
-  PRINF("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^EPOCHEBD:Current thread at %p THREAD%d self %p. "
-        "Stopping other threads\n",
+  PRINF("---- EPOCHEBD:Current thread at %p THREAD%d self %p. "
+        "Stopping other threads",
         current, current->index, (void*)pthread_self());
 
   // Traverse the thread map to check the status of every thread.
@@ -287,16 +288,30 @@ void xrun::stopAllThreads() {
 bool isNewThread() { return current->isNewlySpawned; }
 
 void jumpToFunction(ucontext_t* cxt, unsigned long funcaddr) {
-  PRINF("%p: inside signal handler %p.\n", (void*)pthread_self(),
-        (void*)cxt->uc_mcontext.gregs[REG_RIP]);
+  //PRINF("%p: inside signal handler %p.\n", (void*)pthread_self(),
+  //      (void*)cxt->uc_mcontext.gregs[REG_RIP]);
   // selfmap::getInstance().printCallStack(NULL, NULL, true);
   cxt->uc_mcontext.gregs[REG_RIP] = funcaddr;
+}
+
+void rollbackFromSegv()
+{
+  PRWRN("rolling back due to SEGV");
+
+  // Check whether the segmentation fault is called by buffer overflow.
+  if(xmemory::getInstance().checkHeapOverflow()) {
+    // Now we can roll back
+    PRINF("\n\nOVERFLOW causes segmentation fault!!!! ROLLING BACK\n\n\n");
+    PRINT("\n\nOVERFLOW causes segmentation fault!!!! ROLLING BACK\n\n\n");
+  }
+
+	xrun::getInstance().rollback();
 }
 
 /*
   We are using the SIGUSR2 to stop other threads.
 */
-void xrun::sigusr2Handler(int /* signum */, siginfo_t* /* siginfo */, void* context) {
+void xrun::sigusr2Handler(int /* signum */, siginfo_t* /* siginfo */, void* uctx) {
   // Check what is current status of the system.
   // If we are in the end of an epoch, then we save the context somewhere since
   // current thread is going to stop execution in order to commit or rollback.
@@ -308,7 +323,7 @@ void xrun::sigusr2Handler(int /* signum */, siginfo_t* /* siginfo */, void* cont
   // Check what is the current phase
   if(doubletake::isEpochBegin()) {
     // Current thread is going to enter a new phase
-    xthread::getInstance().saveContext((ucontext_t*)context);
+    xthread::getInstance().saveContext((ucontext_t*)uctx);
     // NOTE: we do not need to reset contexts if we are still inside the signal handleer
     // since the exiting from signal handler can do this automatically.
   } else {
@@ -327,26 +342,24 @@ void xrun::sigusr2Handler(int /* signum */, siginfo_t* /* siginfo */, void* cont
       unlock_thread(current);
     }
     // Rollback inside signal handler is different
-    xthread::getInstance().rollbackInsideSignalHandler((ucontext_t*)context);
+    xthread::getInstance().rollbackInsideSignalHandler((ucontext_t*)uctx);
   }
   // Jump to a function and wait for the instruction of the committer thread.
 }
 
-void xrun::installSignalHandler() {
-  struct sigaction sigusr2;
+void xrun::sigsegvHandler(int /* signum */, siginfo_t* siginfo, void* uctx) {
+    jumpToFunction((ucontext_t*)uctx, (unsigned long)rollbackFromSegv);
+}
 
-  static stack_t _sigstk;
-
+void xrun::installSignalHandlers() {
   // Set up an alternate signal stack.
-  _sigstk.ss_sp = MM::mmapAllocatePrivate(SIGSTKSZ);
-  _sigstk.ss_size = SIGSTKSZ;
-  _sigstk.ss_flags = 0;
-  Real::sigaltstack(&_sigstk, (stack_t*)0);
+  static stack_t altstack;
+  memset(&altstack, 0, sizeof(altstack));
+  altstack.ss_sp = MM::mmapAllocatePrivate(SIGSTKSZ);
+  altstack.ss_size = SIGSTKSZ;
+  altstack.ss_flags = 0;
+  Real::sigaltstack(&altstack, (stack_t *)NULL);
 
-  // We don't want to receive SIGUSR2 again when a thread is inside signal handler.
-  sigemptyset(&sigusr2.sa_mask);
-  sigaddset(&sigusr2.sa_mask, SIGUSR2);
-  //  Real::sigprocmask (SIG_BLOCK, &sigusr2.sa_mask, NULL);
   /**
      Some parameters used here:
      SA_RESTART: Provide behaviour compatible with BSD signal
@@ -354,11 +367,30 @@ void xrun::installSignalHandler() {
      SA_SIGINFO: The  signal handler takes 3 arguments, not one.  In this case, sa_sigac-
                  tion should be set instead of sa_handler.
      So, we can acquire the user context inside the signal handler
+
+     We do NOT want SA_RESTART - that will cause the signal to
+     potentially be recursively received.
   */
+
+  struct sigaction sigusr2;
+  memset(&sigusr2, 0, sizeof(sigusr2));
+  // no need to explicitly set SIGUSR2 in the mask - it is
+  // automatically blocked while the handler is running.
+  sigemptyset(&sigusr2.sa_mask);
   sigusr2.sa_flags = SA_SIGINFO | SA_RESTART | SA_ONSTACK;
   sigusr2.sa_sigaction = xrun::sigusr2Handler;
   if(Real::sigaction(SIGUSR2, &sigusr2, NULL) == -1) {
-    fprintf(stderr, "setting signal handler SIGUSR2 failed.\n");
-    abort();
+    FATAL("sigaction(SIGUSR2): %d (%s)", errno, strerror(errno));
+  }
+
+  struct sigaction sigsegv;
+  memset(&sigsegv, 0, sizeof(sigsegv));
+  // no need to explicitly set SIGSEGV in the mask - it is
+  // automatically blocked while the handler is running.
+  sigemptyset(&sigsegv.sa_mask);
+  sigsegv.sa_flags = SA_SIGINFO | SA_RESTART | SA_ONSTACK;
+  sigsegv.sa_sigaction = xrun::sigsegvHandler;
+  if(Real::sigaction(SIGSEGV, &sigsegv, NULL) == -1) {
+    FATAL("sigaction(SIGSEGV): %d (%s)", errno, strerror(errno));
   }
 }

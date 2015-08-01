@@ -304,7 +304,7 @@ public:
 
 		// Having pending events
     if(!isListEmpty(eventlist)) {
-		PRINF("During peek, calling singalCurrentThread %d. with pending events.\n", thread->index);
+		PRINF("During peek, calling singalCurrentThread %d. with pending events.", thread->index);
       // Signal itself when current event is first event of this thread.
       struct pendingSyncEvent* pe = NULL;
 
@@ -415,7 +415,7 @@ public:
   static void prepareEventListRollback(SyncEventList* eventlist) {
     struct syncEvent* event = eventlist->prepareRollback();
 
-		PRINF("prepareEventListRollback eventlist %p event %p\n", eventlist, event);
+		PRINF("prepareEventListRollback eventlist %p event %p", eventlist, event);
     if(event) {
       // Signal to next thread with the top event
       signalNextThread(event);

@@ -45,7 +45,7 @@ char* getThreadBuffer() {
 
 void xthread::invokeCommit() {
   xrun::getInstance().epochEnd(false);
-	PRINF("invokeCommit after epochEnd\n");
+	PRINF("invokeCommit after epochEnd");
   xrun::getInstance().epochBegin();
 }
 
@@ -109,24 +109,24 @@ void xthread::destroyThreadSemaphore(thread_t* thread) {
 void xthread::initThreadSemaphore(thread_t* thread) {
     semaphore* sema = &thread->sema;
 
-    PRINF("INITSEMA: THREAD%d at %p sema %p\n", thread->index, thread, sema);
-    PRINF("INITSEMA: THREAD%d at %p sema %p\n", thread->index, thread, sema);
+    PRINF("INITSEMA: THREAD%d at %p sema %p", thread->index, thread, sema);
+    PRINF("INITSEMA: THREAD%d at %p sema %p", thread->index, thread, sema);
     // We initialize the semaphore value to 0.
     sema->init((unsigned long)thread->self, 1, 0);
 }
 
 void xthread::prepareRollback() {
-  PRINF("calling syscalls::prepareRollback\n");
-  PRINF("calling threadmap::prepareRollback\n");
+  PRINF("calling syscalls::prepareRollback");
+  PRINF("calling threadmap::prepareRollback");
 
 	prepareRollbackAlivethreads();
 
-  PRINF("calling xsync::prepareRollback\n");
-  PRINF("before calling sync::prepareRollback\n");
+  PRINF("calling xsync::prepareRollback");
+  PRINF("before calling sync::prepareRollback");
   // Update the semaphores and synchronization entry
   _sync.prepareRollback();
 	xsync::prepareEventListRollback(_spawningList);
-	PRINF("after calling sync::prepareRollback\n");
+	PRINF("after calling sync::prepareRollback");
 
 	// Setting the phase to rollback
 	global_setRollback(); 
@@ -148,7 +148,7 @@ void xthread::wakeupOldWaitingThreads() {
 		// Currently, we only care about those old threads since 
 		// the parent will wakeup those newly spawned threads appropriately 
 		if(thread->isNewlySpawned != true) {
-			PRINF("wakeup thread %d at wakeupOldWaitingThreads\n", thread->index);    
+			PRINF("wakeup thread %d at wakeupOldWaitingThreads", thread->index);    
     	if(thread->status == E_THREAD_WAITFOR_REAPING) {
     		// If the thread is already at E_THREAD_WAITFOR_REAPING and it not a newly spawned thread,
 				// then we should wake this thread up immediately

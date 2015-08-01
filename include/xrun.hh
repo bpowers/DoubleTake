@@ -68,11 +68,13 @@ private:
   void stopAllThreads();
 
   // Handling the signal SIGUSR2
-  static void sigusr2Handler(int signum, siginfo_t* siginfo, void* context);
+  static void sigusr2Handler(int signum, siginfo_t *siginfo, void *uctx);
+  static void sigsegvHandler(int signum, siginfo_t *siginfo, void *uctx);
 
-  /// @brief Install a handler for SIGUSR2 signals.
-  /// We are using the SIGUSR2 to stop all other threads.
-  void installSignalHandler();
+  /// @brief Install a handler for SIGUSR2 & SEGV signals.
+  /// We are using the SIGUSR2 to stop all other threads, and SEGV to
+  /// detect memory errors
+  void installSignalHandlers();
 
   // Notify the system call handler about rollback phase
   void startRollback();

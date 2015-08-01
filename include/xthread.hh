@@ -864,7 +864,7 @@ public:
   };
 
   inline static void restoreContext() {
-    PRINF("restore context now\n");
+    PRINF("restore context now (ROLLBACK)");
     current->context.rollback();
   };
 
@@ -967,9 +967,9 @@ private:
   static void waitSemaphore() {
     semaphore* sema = &current->sema;
 
-		PRINF("wait on semaphore %p\n", sema);
+		PRINF("wait on semaphore %p", sema);
     sema->get();
-		PRINF("Get the semaphore %p\n", sema);
+		PRINF("Get the semaphore %p", sema);
   }
 
   semaphore* getSemaphore() { return &current->sema; }
@@ -1036,7 +1036,7 @@ private:
     // Now we can wakeup the parent since the parent must wait for the registe
     signal_thread(current);
 
-    PRINF("THREAD%d (pthread_t %p) registered at %p, status %d wakeup %p. lock at %p\n",
+    PRINF("THREAD%d (pthread_t %p) registered at %p, status %d wakeup %p. lock at %p",
           current->index, (void*)current->self, current, current->status, &current->cond,
           &current->mutex);
 
@@ -1047,7 +1047,7 @@ private:
     }
 
     // WARN("THREAD%d (pthread_t %p) registered at %p", current->index, current->self, current );
-    PRINF("THREAD%d (pthread_t %p) registered at %p, status %d\n", current->index,
+    PRINF("THREAD%d (pthread_t %p) registered at %p, status %d", current->index,
           (void*)current->self, current, current->status);
   }
 

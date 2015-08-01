@@ -74,12 +74,12 @@ void selfmap::printCallStack(int frames, void** array) {
 int selfmap::getCallStack(void** array) {
   int size;
 
-  PRINF("Try to get backtrace with array %p\n", array);
+  PRINF("Try to get backtrace with array %p", array);
   // get void*'s for all entries on the stack
   xthread::disableCheck();
   size = backtrace(array, xdefines::CALLSITE_MAXIMUM_LENGTH);
   xthread::enableCheck();
-  PRINF("After get backtrace with array %p\n", array);
+  PRINF("After get backtrace with array %p", array);
 
   return size;
 }

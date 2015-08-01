@@ -76,7 +76,7 @@ public:
   }
 
   inline void* getHeapStart() {
-    PRINF("*****XHEAP:_start %p*****\n", _start);
+    PRINF("*****XHEAP:_start %p*****", _start);
     return (void*)_start;
   }
 

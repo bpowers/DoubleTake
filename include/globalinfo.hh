@@ -74,7 +74,7 @@ inline void global_epochBegin() {
   global_lockInsideSignalhandler();
 
   doubletake::phase = doubletake::E_SYS_EPOCH_BEGIN;
-  PRINF("waken up all waiters\n");
+  PRINF("waken up all waiters");
   // Wakeup all other threads.
   Real::pthread_cond_broadcast(&g_condWaiters);
 

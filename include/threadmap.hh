@@ -66,7 +66,7 @@ public:
     listInit(&ath->list);
     ath->thread = thread;
 
-    PRINF("Insert alive thread %p\n", thread);
+    PRINF("Insert alive thread %p", thread);
     listInsertTail(&ath->list, &_alivethreads);
 
     _xmap.insert((void*)tid, sizeof(void*), thread);

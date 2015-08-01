@@ -39,18 +39,24 @@ namespace doubletake {
   void lock();
   void unlock();
 
-  /// To end an epoch, a thread calls epochEnd.  epochEnd returns when
-  /// all threads have entered epochEnd or epochEndInHandler.  This
-  /// may take some time - the end-of-epoch signal is delivered to
+  /// To end an epoch, a thread calls epochEnd.  More than 1 thread
+  /// may enter epochEnd - the end-of-epoch signal is delivered to
   /// other threads when that thread returns from a syscall or is
   /// rescheduled.  Because of this, other threads may attempt to end
   /// an epoch themselves before receiving the end-of-epoch signal.
   void epochEnd();
-  void epochEndInHandler();
+
+  /// An epoch has ended when all threads have called quiesce - it is
+  /// called from inside epochEnd, or quiesceInHandler is called from
+  /// the signal handler.
+  void quiesce();
+  void quiesceInHandler();
 
   /// the next epoch is started when all threads have entered
   /// waitForNextEpoch.
   void waitForNextEpoch();
+
+  bool quarantine(void *ptr, size_t size);
 };
 
 #endif // DOUBLETAKE_DOUBLETAKE_HH
