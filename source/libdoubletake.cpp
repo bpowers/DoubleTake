@@ -48,12 +48,13 @@ int doubletake_main(int argc, char** argv, char** envp) {
 
   rc = real_main(argc, argv, envp);
 
+  // FIXME: this should eventually work, but doesn't yet
   // explicitly end the epoch here rather than as a result of static
-  // destructors
-	//xrun::getInstance().epochEnd(true);
-
-  // new epoch for program destruction
-  //xrun::getInstance().epochBegin();
+  // destructors, as long as we're not in a rollback currently
+  //if(!doubletake::isRollback) {
+  //  xrun::getInstance().epochEnd(true);
+  //  xrun::getInstance().epochBegin();
+  //}
 
   return rc;
 }
