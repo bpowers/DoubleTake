@@ -20,6 +20,7 @@
 #include "globalinfo.hh"
 #include "internalheap.hh"
 #include "log.hh"
+#include "leakcheck.hh"
 #include "mm.hh"
 #include "real.hh"
 #include "watchpoint.hh"
@@ -32,7 +33,7 @@ class xrun {
 private:
   xrun()
       : _memory(xmemory::getInstance()), _thread(xthread::getInstance()),
-        _watchpoint(watchpoint::getInstance())
+        _watchpoint(watchpoint::getInstance()), _leakcheck()
   {
     // PRINF("xrun constructor\n");
   }
@@ -99,6 +100,8 @@ private:
   xmemory& _memory;
   xthread& _thread;
   watchpoint& _watchpoint;
+
+  leakcheck _leakcheck;
 };
 
 #endif

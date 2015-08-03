@@ -12,7 +12,6 @@
 
 #include "globalinfo.hh"
 #include "internalsyncs.hh"
-#include "leakcheck.hh"
 #include "syscalls.hh"
 #include "threadmap.hh"
 #include "threadstruct.hh"
@@ -182,12 +181,10 @@ void xrun::epochEnd(bool endOfProgram) {
   bool hasMemoryLeak = false;
   if(endOfProgram) {
     //  PRINF("DETECTING MEMORY LEAKAGE in the end of program!!!!\n");
-    hasMemoryLeak =
-      leakcheck::getInstance().doFastLeakCheck(_memory.getHeapBegin(), _memory.getHeapEnd());
+    hasMemoryLeak = _leakcheck.doFastLeakCheck(_memory.getHeapBegin(), _memory.getHeapEnd());
   } else {
     // PRINF("DETECTING MEMORY LEAKAGE inside a program!!!!\n");
-    hasMemoryLeak =
-      leakcheck::getInstance().doSlowLeakCheck(_memory.getHeapBegin(), _memory.getHeapEnd());
+    hasMemoryLeak = _leakcheck.doSlowLeakCheck(_memory.getHeapBegin(), _memory.getHeapEnd());
   }
 #endif
 
