@@ -120,14 +120,7 @@ private:
 	};
 
 public:
-  xsync() {}
-
-	static xsync& getInstance() {
-    static char buf[sizeof(xsync)];
-    static xsync* theOneTrueObject = new (buf) xsync();
-    return *theOneTrueObject;
-  }
-
+  explicit xsync() {}
 
   void initialize() {
 		// Initialize two lists for record synchronization variables.

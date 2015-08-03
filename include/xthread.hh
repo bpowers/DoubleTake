@@ -49,7 +49,7 @@ class xthread {
 	};
 
 public:
-  xthread() : _sync(xsync::getInstance()),
+  xthread() : _sync(),
 							_thread(threadinfo::getInstance())
 	{}
 
@@ -1087,7 +1087,7 @@ private:
 
   // Insert a synchronization variable into the global list, which
   // are reaped later in the beginning of next epoch.
-  inline static bool deferSync(void* ptr, syncVariableType type) {
+  inline bool deferSync(void* ptr, syncVariableType type) {
 		if(type == E_SYNCVAR_THREAD) {
     	return threadinfo::getInstance().deferSync(ptr, type);
 		}
@@ -1097,7 +1097,7 @@ private:
 			//if(type == E_SYNCVAR_BARRIER) {
 			//	PRINF("Barrier before detroy ptr %p entry %p\n", ptr, entry);
 			//}
-			xsync::getInstance().deferSync(entry);
+			_sync.deferSync(entry);
 			return true;
 		}
   }
@@ -1177,7 +1177,7 @@ private:
 
   // They are claimed in xthread.cpp since I don't
   // want to create an xthread.cpp
-  xsync& _sync;
+  xsync _sync;
 	SysRecord _sysrecord;
   threadinfo& _thread;
   SyncEventList * _spawningList;
