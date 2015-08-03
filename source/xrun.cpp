@@ -216,7 +216,7 @@ void xrun::epochEnd(bool endOfProgram) {
   PRINF("before calling syscalls epochEndWell");
   syscalls::getInstance().epochEndWell();
 
-  xthread::getInstance().epochEndWell();
+  _thread.epochEndWell();
 
 #ifndef EVALUATING_PERF
 #if defined(DETECT_OVERFLOW) || defined(DETECT_MEMORY_LEAKS)
@@ -323,6 +323,10 @@ void rollbackFromSegv()
   We are using the SIGUSR2 to stop other threads.
 */
 void xrun::sigusr2Handler(int /* signum */, siginfo_t* /* siginfo */, void* uctx) {
+  xrun::getInstance().endOfEpochSignal((ucontext_t *)uctx);
+}
+
+void xrun::endOfEpochSignal(ucontext_t *uctx) {
   // Check what is current status of the system.
   // If we are in the end of an epoch, then we save the context somewhere since
   // current thread is going to stop execution in order to commit or rollback.
@@ -334,7 +338,7 @@ void xrun::sigusr2Handler(int /* signum */, siginfo_t* /* siginfo */, void* uctx
   // Check what is the current phase
   if(doubletake::isEpochBegin()) {
     // Current thread is going to enter a new phase
-    xthread::getInstance().saveContext((ucontext_t*)uctx);
+    _thread.saveContext((ucontext_t*)uctx);
     // NOTE: we do not need to reset contexts if we are still inside the signal handleer
     // since the exiting from signal handler can do this automatically.
   } else {
@@ -353,7 +357,7 @@ void xrun::sigusr2Handler(int /* signum */, siginfo_t* /* siginfo */, void* uctx
       unlock_thread(current);
     }
     // Rollback inside signal handler is different
-    xthread::getInstance().rollbackInsideSignalHandler((ucontext_t*)uctx);
+    _thread.rollbackInsideSignalHandler((ucontext_t*)uctx);
   }
   // Jump to a function and wait for the instruction of the committer thread.
 }
