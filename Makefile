@@ -1,6 +1,9 @@
 # default optimization level
 O=0
 
+SUBDIRS = test
+SUBDIR_BUILDFILES = $(addsuffix /build.mk,$(SUBDIRS))
+
 ARCH ?= amd64
 
 # prefer clang
@@ -52,13 +55,22 @@ TARGETS := $(LIB)
 # CFLAGS/LDFLAGS change)
 CONFIG := Makefile
 
+# test-bin is a bit of a hack so that we can declare the all target
+# first (this making it the default target) before we include the
+# build.mk files in subdirs, which add an arbitrary number fof entries
+# to TEST_TARGETS
+all: $(TARGETS) test-bin
+
+-include $(SUBDIR_BUILDFILES)
+
+test-bin: $(TEST_BIN_TARGETS)
+
+test: $(TESTS)
+
 # clear out all suffixes
 .SUFFIXES:
 # list only those we use
 .SUFFIXES: .d .c .cpp .s .o .test
-
-
-all: $(TARGETS)
 
 %.o: %_$(ARCH).s $(CONFIG)
 	@echo "  AS    $@"
@@ -88,7 +100,7 @@ clean:
 	find . -name '*.gcno' -print0 | xargs -0 rm -f
 	find . -name '*.gcda' -print0 | xargs -0 rm -f
 	find . -name '*.gcov' -print0 | xargs -0 rm -f
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) $(TEST_BIN_TARGETS)
 
 distclean: clean
 	find . -name '*.d' -print0 | xargs -0 rm -f
@@ -96,4 +108,4 @@ distclean: clean
 
 -include $(LIB_OBJS:.o=.d)
 
-.PHONY: all format clean distclean
+.PHONY: all test-bin format clean distclean $(PHONY_TARGETS)

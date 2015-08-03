@@ -1,12 +1,7 @@
 *.o
 *.d
 libdoubletake.so
+simple.test
 heaplayers
-tests/simple_leak/obj
-tests/simple_leak/simple_leak
-tests/simple_overflow/obj
-tests/simple_overflow/simple_overflow
-tests/simple_uaf/obj
-tests/simple_uaf/simple_uaf
 TAGS
 *~
