@@ -73,6 +73,8 @@ public:
   void printStackCurrent() { _memory.printStackCurrent(); }
   void printStack(const doubletake::Trace &trace) { _memory.printStack(trace); }
 
+  bool addQuarantineList(void* ptr, size_t sz) { return _thread.addQuarantineList(ptr, sz); }
+
 private:
   void syscallsInitialize();
   void stopAllThreads();

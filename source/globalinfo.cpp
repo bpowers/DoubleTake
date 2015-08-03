@@ -60,7 +60,7 @@ void doubletake::__trampsInitialize() {
 }
 
 bool doubletake::quarantine(void *ptr, size_t size) {
-  return xthread::getInstance().addQuarantineList(ptr, size);
+  return xrun::getInstance().addQuarantineList(ptr, size);
 }
 
 bool doubletake::isLib(void *pcaddr) {
