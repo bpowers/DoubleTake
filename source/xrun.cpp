@@ -18,7 +18,6 @@
 #include "threadstruct.hh"
 
 static void jumpToFunction(ucontext_t* cxt, unsigned long funcaddr);
-static void rollbackFromSegv();
 
 void xrun::initialize() {
   // initialized is always called before we've clone(2)'ed any other
@@ -305,18 +304,20 @@ void jumpToFunction(ucontext_t* cxt, unsigned long funcaddr) {
   cxt->uc_mcontext.gregs[REG_RIP] = funcaddr;
 }
 
-void rollbackFromSegv()
+void xrun::rollbackFromSegv()
 {
+  xrun::getInstance().rollbackFromSegvSignal();
+}
+
+void xrun::rollbackFromSegvSignal() {
   PRWRN("rolling back due to SEGV");
 
   // Check whether the segmentation fault is called by buffer overflow.
-  if(xmemory::getInstance().checkHeapOverflow()) {
-    // Now we can roll back
-    PRINF("\n\nOVERFLOW causes segmentation fault!!!! ROLLING BACK\n\n\n");
-    PRINT("\n\nOVERFLOW causes segmentation fault!!!! ROLLING BACK\n\n\n");
+  if(_memory.checkHeapOverflow()) {
+    PRINF("OVERFLOW causes segmentation fault!!!! ROLLING BACK\n");
   }
 
-	xrun::getInstance().rollback();
+	rollback();
 }
 
 /*

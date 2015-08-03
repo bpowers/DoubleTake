@@ -82,8 +82,10 @@ private:
   // Handling the signal SIGUSR2
   static void sigusr2Handler(int signum, siginfo_t *siginfo, void *uctx);
   static void sigsegvHandler(int signum, siginfo_t *siginfo, void *uctx);
+  static void rollbackFromSegv();
 
   void endOfEpochSignal(ucontext_t *uctx);
+  void rollbackFromSegvSignal();
 
   /// @brief Install a handler for SIGUSR2 & SEGV signals.
   /// We are using the SIGUSR2 to stop all other threads, and SEGV to
