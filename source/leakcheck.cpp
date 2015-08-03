@@ -28,7 +28,7 @@
 void leakcheck::searchHeapPointersInsideGlobals() {
   int totalRegions;
 
-  totalRegions = xmemory::getInstance().getGlobalRegionsNumb();
+  totalRegions = xmemory::getInstance().getGlobalRegionsCount();
   unsigned long begin, end;
 
   for(int i = 0; i < totalRegions; i++) {

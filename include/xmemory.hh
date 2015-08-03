@@ -67,7 +67,7 @@ public:
   void printStackCurrent();
   void printStack(const doubletake::Trace &trace);
 
-  inline int getGlobalRegionsNumb() { return _globals.getRegions(); }
+  inline int getGlobalRegionsCount() { return _globals.getRegions(); }
 
   inline void getGlobalRegion(int index, unsigned long* begin, unsigned long* end) {
     _globals.getGlobalRegion(index, begin, end);
