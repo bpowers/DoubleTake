@@ -20,7 +20,6 @@
 #include "internalheap.hh"
 #include "list.hh"
 #include "mm.hh"
-#include "quarantine.hh"
 #include "real.hh"
 #include "sysrecord.hh"
 #include "recordentries.hh"

@@ -10,7 +10,6 @@
 #include "internalsyncs.hh"
 #include "list.hh"
 #include "log.hh"
-#include "quarantine.hh"
 #include "recordentries.hh"
 #include "threadinfo.hh"
 #include "threadmap.hh"
@@ -43,51 +42,51 @@ char *xthread::getCurrentThreadBuffer() {
 
 void xthread::invokeCommit() {
   xrun::getInstance().epochEnd(false);
-	PRINF("invokeCommit after epochEnd");
+  PRINF("invokeCommit after epochEnd");
   xrun::getInstance().epochBegin();
 }
 
-// Each thread should 
+// Each thread should
 void xthread::epochBegin(thread_t * thread) {
-	
-	// Now we should not have the pending synchronization events.	
-	listInit(&thread->pendingSyncevents);
 
-	// Handle the quarantine list of memory.
+  // Now we should not have the pending synchronization events.
+  listInit(&thread->pendingSyncevents);
+
+  // Handle the quarantine list of memory.
   thread->qlist.restore();
 
-	//PRINF("Cleanup all synchronization events for this thread\n");
-	// cleanup the synchronization events of this thread
+  //PRINF("Cleanup all synchronization events for this thread\n");
+  // cleanup the synchronization events of this thread
   thread->syncevents.cleanup();
 
-	// We should cleanup the syscall events for this thread.
-	SysRecord::epochBegin(thread);	
-	//PRINF("Cleanup all synchronization events for this thread done\n");
+  // We should cleanup the syscall events for this thread.
+  SysRecord::epochBegin(thread);
+  //PRINF("Cleanup all synchronization events for this thread done\n");
 }
 
 void xthread::prepareRollbackAlivethreads() {
-	threadmap::aliveThreadIterator i;
+  threadmap::aliveThreadIterator i;
 
-	for(i = threadmap::getInstance().begin(); i != threadmap::getInstance().end(); i++) {
+  for(i = threadmap::getInstance().begin(); i != threadmap::getInstance().end(); i++) {
     thread_t* thread = i.getThread();
-      
-		// Initialize the semaphore for this thread.
+
+    // Initialize the semaphore for this thread.
     initThreadSemaphore(thread);
 
     // Set the entry of each thread to the first synchronization event.
-   	thread->syscalls.prepareRollback();
-	  thread->syncevents.prepareRollback();
-		SysRecord::prepareRollback(thread);	
+    thread->syscalls.prepareRollback();
+    thread->syncevents.prepareRollback();
+    SysRecord::prepareRollback(thread);
   }
 }
-  
+
 /**
-  destroy all semaphores:
+   destroy all semaphores:
 */
 void xthread::destroyAllSemaphores() {
-	threadmap::aliveThreadIterator i;
+  threadmap::aliveThreadIterator i;
 
-	for(i = threadmap::getInstance().begin(); i != threadmap::getInstance().end(); i++) {
+  for(i = threadmap::getInstance().begin(); i != threadmap::getInstance().end(); i++) {
     thread_t* thread = i.getThread();
 
     // If we found the entry, remove this entry from the list.
@@ -105,60 +104,60 @@ void xthread::destroyThreadSemaphore(thread_t* thread) {
 
 // Initialize the semaphore for  specified thread
 void xthread::initThreadSemaphore(thread_t* thread) {
-    semaphore* sema = &thread->sema;
+  semaphore* sema = &thread->sema;
 
-    PRINF("INITSEMA: THREAD%d at %p sema %p", thread->index, thread, sema);
-    PRINF("INITSEMA: THREAD%d at %p sema %p", thread->index, thread, sema);
-    // We initialize the semaphore value to 0.
-    sema->init((unsigned long)thread->self, 1, 0);
+  PRINF("INITSEMA: THREAD%d at %p sema %p", thread->index, thread, sema);
+  PRINF("INITSEMA: THREAD%d at %p sema %p", thread->index, thread, sema);
+  // We initialize the semaphore value to 0.
+  sema->init((unsigned long)thread->self, 1, 0);
 }
 
 void xthread::prepareRollback() {
   PRINF("calling syscalls::prepareRollback");
   PRINF("calling threadmap::prepareRollback");
 
-	prepareRollbackAlivethreads();
+  prepareRollbackAlivethreads();
 
   PRINF("calling xsync::prepareRollback");
   PRINF("before calling sync::prepareRollback");
   // Update the semaphores and synchronization entry
   _sync.prepareRollback();
-	xsync::prepareEventListRollback(_spawningList);
-	PRINF("after calling sync::prepareRollback");
+  xsync::prepareEventListRollback(_spawningList);
+  PRINF("after calling sync::prepareRollback");
 
-	// Setting the phase to rollback
-	global_setRollback(); 
- 
-	// Now it is time to wake up those waiting threads
-	// if they are not newly spawned in this epoch.
-	wakeupOldWaitingThreads();
+  // Setting the phase to rollback
+  global_setRollback();
 
-	// Wakeup those threads that are waiting on the global waiters.
-	global_wakeup();	
+  // Now it is time to wake up those waiting threads
+  // if they are not newly spawned in this epoch.
+  wakeupOldWaitingThreads();
+
+  // Wakeup those threads that are waiting on the global waiters.
+  global_wakeup();
 }
 
 void xthread::wakeupOldWaitingThreads() {
-	threadmap::aliveThreadIterator i;
+  threadmap::aliveThreadIterator i;
 
-	for(i = threadmap::getInstance().begin(); i != threadmap::getInstance().end(); i++) {
+  for(i = threadmap::getInstance().begin(); i != threadmap::getInstance().end(); i++) {
     thread_t* thread = i.getThread();
- 
-		// Currently, we only care about those old threads since 
-		// the parent will wakeup those newly spawned threads appropriately 
-		if(thread->isNewlySpawned != true) {
-			PRINF("wakeup thread %d at wakeupOldWaitingThreads", thread->index);    
-    	if(thread->status == E_THREAD_WAITFOR_REAPING) {
-    		// If the thread is already at E_THREAD_WAITFOR_REAPING and it not a newly spawned thread,
-				// then we should wake this thread up immediately
-				thread->status = E_THREAD_ROLLBACK;
-				signal_thread(thread);
-    	}	
- 			else if (thread->status == E_THREAD_COND_WAITING || thread->status == E_THREAD_JOINING) {
-				thread->status = E_THREAD_ROLLBACK;
-				Real::pthread_cond_signal(thread->condwait);
-			}
-		}
-	}		
+
+    // Currently, we only care about those old threads since
+    // the parent will wakeup those newly spawned threads appropriately
+    if(thread->isNewlySpawned != true) {
+      PRINF("wakeup thread %d at wakeupOldWaitingThreads", thread->index);
+      if(thread->status == E_THREAD_WAITFOR_REAPING) {
+        // If the thread is already at E_THREAD_WAITFOR_REAPING and it not a newly spawned thread,
+        // then we should wake this thread up immediately
+        thread->status = E_THREAD_ROLLBACK;
+        signal_thread(thread);
+      }
+      else if (thread->status == E_THREAD_COND_WAITING || thread->status == E_THREAD_JOINING) {
+        thread->status = E_THREAD_ROLLBACK;
+        Real::pthread_cond_signal(thread->condwait);
+      }
+    }
+  }
 }
 
 void xthread::setThreadSafe() {
@@ -171,7 +170,7 @@ void xthread::setThreadUnsafe() {
 }
 
 bool xthread::isThreadSafe(thread_t * thread) {
-	return __atomic_load_n(&thread->isSafe, __ATOMIC_SEQ_CST);
+  return __atomic_load_n(&thread->isSafe, __ATOMIC_SEQ_CST);
 }
 
 bool xthread::addQuarantineList(void* ptr, size_t sz) {
@@ -179,24 +178,94 @@ bool xthread::addQuarantineList(void* ptr, size_t sz) {
 }
 
 void xthread::checkRollbackCurrent() {
-	// Check whether I should go to sleep or not.
+  // Check whether I should go to sleep or not.
   lock_thread(current);
   if(current->isNewlySpawned) {
     while(current->status != E_THREAD_ROLLBACK) {
-    	wait_thread(current);
-		}
-	}
+      wait_thread(current);
+    }
+  }
   unlock_thread(current);
 
-	rollbackCurrent();
+  rollbackCurrent();
 }
 
 void xthread::rollbackCurrent() {
-	// Setting the current status
+  // Setting the current status
   current->status = E_THREAD_RUNNING;
 
   current->qlist.restore();
   PRINF("xthread::rollback now\n");
   // Recover the context for current thread.
   restoreContext();
+}
+
+void *xthread::startThread(void *arg) {
+  void* result = NULL;
+  current = (thread_t*)arg;
+
+  // PRINF("thread %p self %p is starting now.\n", current, (void*)current->self);
+  // Record some information before the thread moves on
+  threadRegister(false);
+
+  // Now current thread is safe to be interrupted.
+  setThreadSafe();
+
+  PRINF("thread %p self %p after thread register now.\n", current, (void*)current->self);
+
+  PRINF("Child thread %d has been registered.\n", current->index);
+  // We actually get those parameter about new created thread
+  // from the TLS storage.
+  result = current->startRoutine(current->startArg);
+  PRINF("result %p of calling startRoutine %p on thread %d\n", result, current->startRoutine, current->index);
+  // Insert dead list now so that the corresponding entry can be cleaned up if
+  // there is no need to rollback.
+
+  // Lock the mutex for this thread.
+  lock_thread(current);
+
+  current->result = result;
+  current->status = E_THREAD_WAITFOR_REAPING;
+
+  // Only check the joiner when the thread is not deatached.
+  if(!isThreadDetached()) {
+    // Check the state of joiner.
+    if(current->joiner) {
+      assert(current->joiner->status == E_THREAD_JOINING);
+      PRINF("Waking up the joiner %p!!!\n", (void*)current->joiner->self);
+      // Now we can wakeup the joiner.
+      signal_thread(current);
+    }
+  } else {
+    PRINF("Thread is detached!!!\n");
+  }
+
+  // At commit points, if no heap overflow is detected, then the thread
+  // should set the status to E_THREAD_EXITING, otherwise it should
+  // be set to E_THREAD_ROLLBACK
+  while(current->status != E_THREAD_EXITING && current->status != E_THREAD_ROLLBACK) {
+    wait_thread(current);
+  }
+
+  // What to do in the end of a thread?
+  // It can only have two status, one is to rollback and another is to exit successfully.
+  if(current->status == E_THREAD_ROLLBACK) {
+    PRINF("THREAD%d (at %p) is wakenup and plan to rollback\n", current->index, current);
+    unlock_thread(current);
+
+    // Rollback: has the possible race conditions. FIXME
+    // Since it is possible that we copy back everything after the join, then
+    // Some thread data maybe overlapped by this rollback.
+    // Especially those current->joiner, then we may have a wrong status.
+    PRINF("THREAD%d (at %p) is rollngback now\n", current->index, current);
+    xthread::getInstance().rollbackCurrent();
+
+    // We will never reach here
+    assert(0);
+  } else {
+    assert(current->status == E_THREAD_EXITING);
+    PRINF("THREAD%d (at %p) is wakenup and plan to exit now\n", current->index, current);
+    unlock_thread(current);
+  }
+  return result;
 }
