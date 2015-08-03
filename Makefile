@@ -44,7 +44,7 @@ LIB_OBJS := $(patsubst %_$(ARCH).s,%.o,$(patsubst %.cpp,%.o,$(patsubst %.c,%.o,$
 LIB_GLOBAL_OBJS   := source/libdoubletake.o source/interpose.o
 LIB_UNITTEST_OBJS := $(filter-out $(LIB_GLOBAL_OBJS), $(LIB_OBJS))
 
-LIB := libdoubletake.so
+LIB      := libdoubletake.so
 LIB_DEPS := dl pthread
 
 TARGETS := $(LIB)
@@ -55,7 +55,7 @@ CONFIG := Makefile
 # clear out all suffixes
 .SUFFIXES:
 # list only those we use
-.SUFFIXES: .d .c .o .test
+.SUFFIXES: .d .c .cpp .s .o .test
 
 
 all: $(TARGETS)
