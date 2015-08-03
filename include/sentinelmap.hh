@@ -25,7 +25,9 @@
 
 class sentinelmap {
 public:
-  sentinelmap() {}
+  sentinelmap()
+    : _bitmap(), _wordShiftBits(0), _itemShiftBits(0), _elements(0),
+      _totalBytes(0), _heapStart(0), _lastSentinelAddr(0) {}
 
   // The single instance of sentinelmap. We only need this for
   // heap.
