@@ -1,4 +1,5 @@
-*/obj
+*.o
+*.d
 libdoubletake.so
 heaplayers
 tests/simple_leak/obj
