@@ -121,10 +121,8 @@ public:
 public:
   class aliveThreadIterator {
     struct aliveThread* thread;
-
   public:
     aliveThreadIterator(struct aliveThread* ithread = NULL) { thread = ithread; }
-
     ~aliveThreadIterator() {}
 
     aliveThreadIterator& operator++(int) // in postfix ++
@@ -134,7 +132,6 @@ public:
       } else {
         thread = NULL;
       }
-
       return *this;
     }
 
@@ -146,10 +143,9 @@ public:
     }
 
     bool operator==(const aliveThreadIterator& that) const { return thread == that.thread; }
-
     bool operator!=(const aliveThreadIterator& that) const { return thread != that.thread; }
 
-    thread_t* getThread() { return thread->thread; }
+    thread_t* getThread() const { return thread->thread; }
   };
 
   void traverseAllThreads() {
@@ -176,13 +172,11 @@ public:
   // Acquire the first entry of the hash table
   aliveThreadIterator begin() {
     // Get the first non-null entry
-    if(isListEmpty(&_alivethreads) != true) {
-      return aliveThreadIterator((struct aliveThread*)nextEntry(&_alivethreads));
-    } else {
+    if(isListEmpty(&_alivethreads)) {
       return end();
     }
+    return aliveThreadIterator((struct aliveThread*)nextEntry(&_alivethreads));
   }
-
   aliveThreadIterator end() { return aliveThreadIterator(NULL); }
 
 private:
