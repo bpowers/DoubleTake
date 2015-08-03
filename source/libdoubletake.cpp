@@ -20,7 +20,6 @@
 
 #include "globalinfo.hh"
 #include "real.hh"
-#include "syscalls.hh"
 #include "xmemory.hh"
 #include "xrun.hh"
 #include "xthread.hh"

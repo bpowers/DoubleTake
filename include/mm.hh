@@ -1,4 +1,4 @@
-#if !defined(DOUBLETAKE_MM_H)
+#ifndef DOUBLETAKE_MM_H
 #define DOUBLETAKE_MM_H
 
 #include <errno.h>
@@ -13,7 +13,9 @@
 
 class MM {
 public:
-#define ALIGN_TO_CACHELINE(size) (size % 64 == 0 ? size : (size + 64) / 64 * 64)
+#define CACHELINE_SIZE 64
+#define CACHELINE_MASK (CACHELINE_SIZE-1)
+#define ALIGN_TO_CACHELINE(size) ((size + CACHELINE_MASK) & ~CACHELINE_MASK)
 
   static void mmapDeallocate(void* ptr, size_t sz) { Real::munmap(ptr, sz); }
 

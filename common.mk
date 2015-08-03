@@ -14,7 +14,7 @@ WARNFLAGS := -Wvariadic-macros \
              -Werror -Wno-error=unused-function \
              -Wno-gnu-zero-variadic-macro-arguments \
              -Wno-nested-anon-types -Wno-c99-extensions \
-             -Wno-unused-variable
+             -Wno-unused-variable -Wno-unused-private-field
 
 # cc optimization level
 O ?= 0

@@ -27,7 +27,7 @@
 #include "log.hh"
 #include "real.hh"
 #include "sysrecord.hh"
-#include "selfmap.hh"
+#include "vmmap.hh"
 #include "semaphore.hh"
 #include "synceventlist.hh"
 #include "threadinfo.hh"
@@ -1012,7 +1012,9 @@ private:
       current->mainThread = true;
 
       // First, we must get the stack corresponding information.
-      selfmap::getInstance().getStackInformation(&stackBottom, &privateTop);
+      regioninfo ri = doubletake::findStack(gettid());
+      stackBottom = ri.start;
+      privateTop = ri.end;
     } else {
       /*
         Currently, the memory layout of a thread private area is like the following.

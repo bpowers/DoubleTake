@@ -16,7 +16,6 @@
 #include "threadmap.hh"
 #include "threadstruct.hh"
 #include "xrun.hh"
-#include "syscalls.hh"
 #include "xsync.hh"
 
 // Global lock used when joining and exiting a thread.

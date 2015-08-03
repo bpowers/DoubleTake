@@ -26,7 +26,7 @@
 #include "memtrack.hh"
 #include "objectheader.hh"
 #include "real.hh"
-#include "selfmap.hh"
+#include "vmmap.hh"
 #include "threadstruct.hh"
 #include "watchpoint.hh"
 #include "xdefines.hh"
@@ -55,23 +55,17 @@ public:
     return *theOneTrueObject;
   }
 
-  void initialize() {
-    // Install a handler to intercept SEGV signals (used for trapping initial reads and
-    // writes to pages).
-    //installSignalHandler();
+  void initialize();
+  void finalize();
 
-    // Call _pheap so that xheap.h can be initialized at first and then can work normally.
-    _heapBegin =
-        (intptr_t)_pheap.initialize((void*)xdefines::USER_HEAP_BASE, xdefines::USER_HEAP_SIZE);
+  bool isDoubleTake(void *pcaddr);
 
-    _heapEnd = _heapBegin + xdefines::USER_HEAP_SIZE;
-    _globals.initialize();
-  }
+  // findStack is thread specific - either give the current thread ID,
+  // or specificy who you want.
+  regioninfo findStack(pid_t tid) { return _selfmap.findStack(tid); }
 
-  void finalize() {
-    _globals.finalize();
-    _pheap.finalize();
-  }
+  void printStackCurrent();
+  void printStack(const doubletake::Trace &trace);
 
   inline int getGlobalRegionsNumb() { return _globals.getRegions(); }
 
@@ -344,7 +338,7 @@ public:
     // Check for double free
     if(!o->isGoodObject()) {
       PRWRN("DoubleTake: Caught double free or invalid free error. ptr %p\n", ptr);
-      printCallsite();
+      doubletake::printStackCurrent();
     }
 #endif
 
@@ -418,12 +412,6 @@ public:
 
     // We do not need to install watch points if we only rollback.
     watchpoint::getInstance().installWatchpoints();
-  }
-
-  inline void printCallsite() {
-    selfmap::getInstance().printCallStack();
-   // PRINF("Program exited because of a double free or an invalid free.\n");
-  //  exit(-1);
   }
 
   /// Transaction begins.
@@ -501,6 +489,8 @@ public:
   void realfree(void* ptr);
 
 private:
+  VMMap _selfmap;
+
   /// The globals region.
   xglobals _globals;
 

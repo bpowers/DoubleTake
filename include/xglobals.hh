@@ -12,7 +12,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "selfmap.hh"
+#include "vmmap.hh"
 #include "xdefines.hh"
 #include "xmapping.hh"
 
@@ -24,14 +24,8 @@ public:
     // PRINF("GLOBALS_START is %x\n", GLOBALS_START);
   }
 
-  void initialize() {
-    // We check the mappings to find existing globals.
-
-    // Trying to get information about different text segmensts.
-    selfmap::getInstance().getTextRegions();
-
-    // Trying to get the information of global regions
-    selfmap::getInstance().getGlobalRegions(_gRegions, &_numbRegions);
+  void initialize(const VMMap &vmmap) {
+    vmmap.getGlobalRegions(_gRegions, &_numbRegions);
 
     // Do the initialization for each global.
     for(int i = 0; i < _numbRegions; i++) {

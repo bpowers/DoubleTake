@@ -6,12 +6,23 @@
 
 #include <atomic>
 
+#include <sys/types.h> // pid_t
+
+struct regioninfo {
+  void* start;
+  void* end;
+};
+
 // this is an amalgamation of globalinfo.hh and xrun.hh - it is the
 // global interface that the interposition & syscall functions use to
 // start epochs, end epochs, and detect rollback.
 
 namespace doubletake {
   extern std::atomic_bool initialized;
+  // some of the runtime + interposition functions are needed for
+  // initialization of the rest of the system - they need the Real::*
+  // trampolines to be populated with symbols looked up by the dynamic
+  // linker.
   extern std::atomic_bool trampsInitialized;
 
   extern std::atomic_bool isRollback;
@@ -34,6 +45,20 @@ namespace doubletake {
   void __initialize();
   /// initialize just the Real library trampolines
   void __trampsInitialize();
+
+  struct Trace {
+    Trace(size_t len, void **frames) : len(len), frames(frames) {}
+    size_t len;
+    void **frames;
+  };
+
+  /// returns the bounds for the specified thread's VMA
+  regioninfo findStack(pid_t tid);
+
+  void printStackCurrent();
+  void printStack(const Trace &trace);
+
+  bool isLib(void *pcaddr);
 
   /// global runtime lock
   void lock();

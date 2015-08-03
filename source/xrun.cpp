@@ -21,6 +21,12 @@ static void jumpToFunction(ucontext_t* cxt, unsigned long funcaddr);
 static void rollbackFromSegv();
 
 void xrun::initialize() {
+  // initialized is always called before we've clone(2)'ed any other
+  // threads.  Just check the global, no need for locks.
+  if (doubletake::initialized) {
+    return;
+  }
+
   //    PRINT("xrun: initialization at line %d\n", __LINE__);
   struct rlimit rl;
 
@@ -33,22 +39,27 @@ void xrun::initialize() {
   // Check the stack size.
   __max_stack_size = rl.rlim_cur;
 
+  // Initialize the internal heap at first.
+  InternalHeap::getInstance().initialize();
+
+  // next is _memory, as xthread::threadRegister calls into
+  // xmemory::findStack.
+  _memory.initialize();
+
   // Initialize the locks and condvar used in epoch switches
   global_initialize();
 
   installSignalHandlers();
 
-  // Initialize the internal heap at first.
-  InternalHeap::getInstance().initialize();
-
   _thread.initialize();
-
-  // Initialize the memory (install the memory handler)
-  _memory.initialize();
 
   syscallsInitialize();
 
   doubletake::initialized = true;
+}
+
+bool xrun::isDoubleTake(void *pcaddr) {
+  return _memory.isDoubleTake(pcaddr);
 }
 
 void xrun::finalize() {

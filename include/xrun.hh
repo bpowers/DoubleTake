@@ -63,6 +63,16 @@ public:
   void epochBegin();
   void epochEnd(bool endOfProgram);
 
+  bool isDoubleTake(void *pcaddr);
+
+  // findStack is thread specific - either give the current thread ID,
+  // or specificy who you want.
+  regioninfo findStack(pid_t tid) { return _memory.findStack(tid); }
+  // Print out the code information about an eip address.
+  // Also try to print out the stack trace of given pcaddr.
+  void printStackCurrent() { _memory.printStackCurrent(); }
+  void printStack(const doubletake::Trace &trace) { _memory.printStack(trace); }
+
 private:
   void syscallsInitialize();
   void stopAllThreads();

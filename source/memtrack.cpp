@@ -1,6 +1,9 @@
-#include "memtrack.hh"
+#include <execinfo.h>
 
-#include "selfmap.hh"
+#include "runtime.hh"
+#include "memtrack.hh"
+#include "xthread.hh"
+
 #include "sentinelmap.hh"
 
 // Check whether an object should be reported or not. Type is to identify whether it is
@@ -26,7 +29,10 @@ void memtrack::check(void* start, size_t size, memTrackType type) {
        (object->hasLeak() && (object->objectSize == size))) {
       // Now we check the type of this object.
       void* callsites[xdefines::CALLSITE_MAXIMUM_LENGTH];
-      int depth = selfmap::getCallStack((void**)&callsites);
+      xthread::disableCheck();
+      int depth = backtrace(callsites, xdefines::CALLSITE_MAXIMUM_LENGTH);
+      xthread::enableCheck();
+
       object->saveCallsite(size, type, depth, (void**)&callsites[0]);
 #ifndef EVALUATING_PERF
 			// Since printing can cause SPEC2006 benchmarks to fail, thus comment them for evaluating perf.
@@ -34,7 +40,7 @@ void memtrack::check(void* start, size_t size, memTrackType type) {
       if(object->hasLeak()) {
         PRINT("\nLeak object at address %p size %ld. Current call stack:\n", object->start,
               object->objectSize);
-        selfmap::getInstance().printCallStack(depth, (void**)&callsites[0]);
+        doubletake::printStackCurrent();
       }
 #endif
     }
@@ -88,15 +94,15 @@ void memtrack::print(void* start, faultyObjectType type) {
     // then we do not verify its size information.
     PRINT("Memory allocation call stack for object starting at %p:\n", start);
 
+    doubletake::Trace allocTrace(object->allocSite.depth(), object->allocSite.getCallsite());
     // Print its allocation stack.
-    selfmap::getInstance().printCallStack(object->allocSite.depth(),
-                                          object->allocSite.getCallsite());
+    doubletake::printStack(allocTrace);
 
     if(type == OBJECT_TYPE_USEAFTERFREE) {
       assert(object->isFreed() == true);
       PRINT("Memory deallocation call stack:\n");
-      selfmap::getInstance().printCallStack(object->freeSite.depth(),
-                                            object->freeSite.getCallsite());
+      doubletake::Trace freeTrace(object->freeSite.depth(), object->freeSite.getCallsite());
+      doubletake::printStack(freeTrace);
     }
   }
 }

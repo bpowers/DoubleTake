@@ -20,7 +20,6 @@
 
 #include "globalinfo.hh"
 #include "real.hh"
-#include "syscalls.hh"
 #include "xmemory.hh"
 #include "xrun.hh"
 #include "xthread.hh"
@@ -54,9 +53,28 @@ void doubletake::__initialize() {
 }
 
 void doubletake::__trampsInitialize() {
-  Real::initializer();
+  if (!trampsInitialized) {
+    Real::initializer();
+    doubletake::trampsInitialized = true;
+  }
 }
 
 bool doubletake::quarantine(void *ptr, size_t size) {
   return xthread::getInstance().addQuarantineList(ptr, size);
+}
+
+bool doubletake::isLib(void *pcaddr) {
+  return xrun::getInstance().isDoubleTake(pcaddr);
+}
+
+regioninfo doubletake::findStack(pid_t tid) {
+  return xrun::getInstance().findStack(tid);
+}
+
+void doubletake::printStackCurrent() {
+  return xrun::getInstance().printStackCurrent();
+}
+
+void doubletake::printStack(const Trace &trace) {
+  return xrun::getInstance().printStack(trace);
 }

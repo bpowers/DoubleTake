@@ -1,11 +1,12 @@
-#if !defined(DOUBLETAKE_INTERVAL_H)
+#ifndef DOUBLETAKE_INTERVAL_H
 #define DOUBLETAKE_INTERVAL_H
 
 #include <stdint.h>
 
 /**
- * Represents a continuous range of integers (uintptr_t sized). Comparison operator returns true
- * if a point is contained in the interval.
+ * Represents a continuous range of integers (uintptr_t
+ * sized). Comparison operator returns true if a point is contained in
+ * the interval.
  */
 class interval {
 public:
