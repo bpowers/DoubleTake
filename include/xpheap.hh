@@ -22,6 +22,8 @@
 #define MALLOC_TRACE 0
 #include "heaplayers.h"
 
+using doubletake::getThreadIndex;
+
 template <class SourceHeap> class AdaptAppHeap : public SourceHeap {
 
 public:

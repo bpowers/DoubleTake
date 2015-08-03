@@ -11,6 +11,9 @@
 #include <unistd.h>
 
 #include "log.hh"
+#include "runtime.hh"
+
+using doubletake::getCurrentThreadBuffer;
 
 #define NORMAL_CYAN "\033[36m"
 #define NORMAL_MAGENTA "\033[35m"
@@ -54,7 +57,7 @@ std::atomic_int DT_LOG_LEVEL(DEBUG_LEVEL);
 
 void doubletake::logf(const char *file, int line, int level, const char *fmt, ...) {
   char fmtbuf[FMTBUF_LEN];
-  char *tbuf = getThreadBuffer();
+  char *tbuf = getCurrentThreadBuffer();
 
   if (level < 1 || (size_t)level >= LEVEL_NAMES_LEN)
     level = 1;
@@ -70,12 +73,12 @@ void doubletake::logf(const char *file, int line, int level, const char *fmt, ..
   ::vsnprintf(tbuf, LOG_SIZE, fmtbuf, args);
   va_end(args);
 
-  write(OUTFD, getThreadBuffer(), strlen(getThreadBuffer()));
+  write(OUTFD, tbuf, strlen(tbuf));
 }
 
 void doubletake::printf(const char *fmt, ...) {
   char fmtbuf[FMTBUF_LEN];
-  char *tbuf = getThreadBuffer();
+  char *tbuf = getCurrentThreadBuffer();
 
   ::snprintf(fmtbuf, FMTBUF_LEN-1, BRIGHT_MAGENTA "%s" ESC_END "\n", fmt);
  
@@ -85,7 +88,7 @@ void doubletake::printf(const char *fmt, ...) {
   ::vsnprintf(tbuf, LOG_SIZE, fmtbuf, args);
   va_end(args);
 
-  write(OUTFD, getThreadBuffer(), strlen(getThreadBuffer()));
+  write(OUTFD, tbuf, strlen(tbuf));
 }
 
 void doubletake::fatalf(const char *file, int line, const char *fmt, ...) {

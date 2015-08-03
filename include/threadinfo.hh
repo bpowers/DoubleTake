@@ -46,12 +46,10 @@ struct deferSyncVariable {
 /// @class threadinfo
 class threadinfo {
 public:
-  threadinfo() {}
-
-  static threadinfo& getInstance() {
-    static char buf[sizeof(threadinfo)];
-    static threadinfo* theOneTrueObject = new (buf) threadinfo();
-    return *theOneTrueObject;
+  threadinfo()
+    : _aliveThreads(0), _reapableThreads(0), _totalThreads(0), _threadIndex(0),
+      _deferSyncs() {
+    memset(_threads, 0, sizeof(_threads[0]) * xdefines::MAX_ALIVE_THREADS);
   }
 
   void initialize() {

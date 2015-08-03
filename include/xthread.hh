@@ -49,9 +49,7 @@ class xthread {
 	};
 
 public:
-  xthread() : _sync(),
-							_thread(threadinfo::getInstance())
-	{}
+  xthread() : _sync(), _sysrecord(), _thread() {}
 
   // Actually, it is not an actual singleton.
   // Every process will have one copy. They can be used
@@ -82,6 +80,9 @@ public:
   void finalize() {
 		destroyAllSemaphores(); 
 	}
+
+  int getThreadIndex() const;
+  char *getCurrentThreadBuffer();
 
   // After an epoch is end and there is no overflow,
   // we should discard those record events since there is no
@@ -334,7 +335,7 @@ public:
     invokeCommit();
     retval = Real::pthread_cancel(thread);
     if(retval == 0) {
-      threadinfo::getInstance().cancelAliveThread(thread);
+      _thread.cancelAliveThread(thread);
     }
     return retval;
   }
@@ -878,10 +879,10 @@ public:
   inline static void rollbackContext() { assert(0); }
 
   // Run those deferred synchronization.
-  inline static void runDeferredSyncs() { threadinfo::getInstance().runDeferredSyncs(); }
+  inline void runDeferredSyncs() { _thread.runDeferredSyncs(); }
 
   //
-  inline static bool hasReapableThreads() { return threadinfo::getInstance().hasReapableThreads(); }
+  inline bool hasReapableThreads() { return _thread.hasReapableThreads(); }
 
   inline static void enableCheck() {
     current->internalheap = false;
@@ -1089,7 +1090,7 @@ private:
   // are reaped later in the beginning of next epoch.
   inline bool deferSync(void* ptr, syncVariableType type) {
 		if(type == E_SYNCVAR_THREAD) {
-    	return threadinfo::getInstance().deferSync(ptr, type);
+			return _thread.deferSync(ptr, type);
 		}
 		else {
 			xsync::SyncEntry * entry = (xsync::SyncEntry *)(*((void **)((intptr_t)ptr + sizeof(void *))));
@@ -1175,11 +1176,9 @@ private:
     return result;
   }
 
-  // They are claimed in xthread.cpp since I don't
-  // want to create an xthread.cpp
   xsync _sync;
 	SysRecord _sysrecord;
-  threadinfo& _thread;
+  threadinfo _thread;
   SyncEventList * _spawningList;
 };
 

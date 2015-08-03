@@ -139,7 +139,7 @@ void xrun::epochBegin() {
   }
   PRINF("xrun epochBegin, joinning every thread done.");
 
-  xthread::runDeferredSyncs();
+  _thread.runDeferredSyncs();
 
   PRINF("xrun epochBegin, run deferred synchronizations done.");
 

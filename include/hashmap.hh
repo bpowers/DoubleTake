@@ -18,6 +18,8 @@
 #include "log.hh"
 #include "xdefines.hh"
 
+using doubletake::getThreadIndex;
+
 template <class KeyType,                    // What is the key? A long or string
           class ValueType,                  // What is the value there?
           class LockType, class SourceHeap> // Where to call malloc

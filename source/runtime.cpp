@@ -78,3 +78,11 @@ void doubletake::printStackCurrent() {
 void doubletake::printStack(const Trace &trace) {
   return xrun::getInstance().printStack(trace);
 }
+
+int doubletake::getThreadIndex() {
+  return xrun::getInstance().getThreadIndex();
+}
+
+char *doubletake::getCurrentThreadBuffer() {
+  return xrun::getInstance().getCurrentThreadBuffer();
+}

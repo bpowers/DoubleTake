@@ -28,7 +28,7 @@ __thread thread_t* current;
 // threadmap::threadHashMap threadmap::_xmap;
 list_t threadmap::_alivethreads;
 
-int getThreadIndex() {
+int xthread::getThreadIndex() const {
   if(!doubletake::isInitPhase()) {
     return current->index;
   } else {
@@ -36,10 +36,9 @@ int getThreadIndex() {
   }
 }
 
-char* getThreadBuffer() {
+char *xthread::getCurrentThreadBuffer() {
   int index = getThreadIndex();
-
-  return threadinfo::getInstance().getThreadBuffer(index);
+  return _thread.getThreadBuffer(index);
 }
 
 void xthread::invokeCommit() {

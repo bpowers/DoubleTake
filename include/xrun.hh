@@ -76,6 +76,9 @@ public:
 
   bool addQuarantineList(void* ptr, size_t sz) { return _thread.addQuarantineList(ptr, sz); }
 
+  int getThreadIndex() const { return _thread.getThreadIndex(); }
+  char *getCurrentThreadBuffer() { return _thread.getCurrentThreadBuffer(); }
+
 private:
   void syscallsInitialize();
   void stopAllThreads();

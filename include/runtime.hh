@@ -46,6 +46,9 @@ namespace doubletake {
   /// initialize just the Real library trampolines
   void __trampsInitialize();
 
+  int getThreadIndex();
+  char *getCurrentThreadBuffer(); // for logging
+
   struct Trace {
     Trace(size_t len, void **frames) : len(len), frames(frames) {}
     size_t len;

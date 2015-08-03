@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <new>
 
@@ -64,7 +65,9 @@ public:
   static void trapHandler(int sig, siginfo_t* siginfo, void* context);
 
 private:
-  watchpoint() : _numWatchpoints(0) {}
+  watchpoint() : _numWatchpoints(0) {
+    memset(_wp, 0, sizeof(_wp[0])*xdefines::MAX_WATCHPOINTS);
+  }
   ~watchpoint() {}
 
   int _numWatchpoints;
