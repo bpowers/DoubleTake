@@ -9,14 +9,10 @@ UNIT_OBJS        := $(patsubst %.cpp,%.o,$(UNIT_SRCS))
 
 UNIT_LDFLAGS     += -L. -ldttest_s -ldl -lpthread
 
-# not our code - Wextra and Wundef cause clang to bail out
+# -Wextra and -Wundef cause clang to bail out in the gtest headers
 GTEST_CXXFLAGS   := $(filter-out -Wextra,$(CXXFLAGS:-Wundef=)) -DGTEST_HAS_PTHREAD=1
 
-$(DIR)/gtest-all.o: $(DIR)/gtest-all.cpp $(CONFIG) $(DIR)/build.mk
-	@echo "  CXX   $@"
-	$(CXX) -O0 $(GTEST_CXXFLAGS) -MMD -o $@ -c $<
-
-$(DIR)/gtest_main.o: $(DIR)/gtest_main.cpp $(CONFIG) $(DIR)/build.mk
+$(DIR)/%.o: $(DIR)/%.cpp $(CONFIG) $(DIR)/build.mk
 	@echo "  CXX   $@"
 	$(CXX) -O0 $(GTEST_CXXFLAGS) -MMD -o $@ -c $<
 

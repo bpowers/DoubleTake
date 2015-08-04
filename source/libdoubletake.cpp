@@ -47,7 +47,7 @@ int doubletake_main(int argc, char** argv, char** envp) {
 
   rc = real_main(argc, argv, envp);
 
-  // FIXME: this should eventually work, but doesn't yet
+  // FIXME: this should eventually work, but doesn't yet.
   // explicitly end the epoch here rather than as a result of static
   // destructors, as long as we're not in a rollback currently
   //if(!doubletake::isRollback) {
