@@ -24,7 +24,7 @@ $(UNIT_BIN): $(CONFIG) $(UNIT_OBJS) $(TESTLIB) $(DIR)/build.mk
 	@echo "  LD    $@"
 	$(CXX) -O0 $(CFLAGS) -MMD -o $@ $(UNIT_OBJS) $(LDFLAGS) $(UNIT_LDFLAGS)
 
--include $(OBJS:.o=.d)
+-include $(UNIT_OBJS:.o=.d)
 
 unit-tests: $(UNIT_BIN)
 	./$<
