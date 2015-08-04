@@ -7,7 +7,7 @@ TESTS            += unit-tests
 UNIT_SRCS        := $(wildcard $(DIR)/*.cpp)
 UNIT_OBJS        := $(patsubst %.cpp,%.o,$(UNIT_SRCS))
 
-UNIT_LDFLAGS     += -L. -ldoubletake_test -ldl -lpthread
+UNIT_LDFLAGS     += -L. -ldttest_s -ldl -lpthread
 
 # -Wextra and -Wundef cause clang to bail out in the gtest headers
 GTEST_CXXFLAGS   := $(filter-out -Wextra,$(CXXFLAGS:-Wundef=)) -DGTEST_HAS_PTHREAD=1
@@ -27,6 +27,6 @@ $(UNIT_BIN): $(CONFIG) $(UNIT_OBJS) $(TESTLIB) $(DIR)/build.mk
 -include $(OBJS:.o=.d)
 
 unit-tests: $(UNIT_BIN)
-	LD_LIBRARY_PATH=. ./$<
+	./$<
 
 PHONY_TARGETS += simple-tests
