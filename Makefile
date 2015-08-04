@@ -1,19 +1,16 @@
 # default optimization level
 O=0
 
-SUBDIRS = test
+SUBDIRS = test test/unit
 SUBDIR_BUILDFILES = $(addsuffix /build.mk,$(SUBDIRS))
 
 ARCH ?= amd64
 
 # prefer clang
-CC  = clang
-CXX = clang++
-
-# echo from modern GNU coreutils needs an explicit -e, otherwise it
-# doesn't unescape control characters (like text coloring +
-# formatting)
-ECHO ?= echo -e
+CC     = clang
+CXX    = clang++
+AR     = ar
+RANLIB = ranlib
 
 WARNFLAGS := \
         -Wall -Wextra -Wvariadic-macros \
@@ -45,10 +42,12 @@ LIB_OBJS := $(patsubst %_$(ARCH).s,%.o,$(patsubst %.cpp,%.o,$(patsubst %.c,%.o,$
 # interposition functions needed for libdoubletake - but we don't want
 # to include them when building unit tests
 LIB_GLOBAL_OBJS   := source/libdoubletake.o source/interpose.o
-LIB_UNITTEST_OBJS := $(filter-out $(LIB_GLOBAL_OBJS), $(LIB_OBJS))
+LIB_UNITTEST_OBJS := $(filter-out $(LIB_GLOBAL_OBJS),$(LIB_OBJS))
 
 LIB      := libdoubletake.so
 LIB_DEPS := dl pthread
+
+TESTLIB := libdttest_s.a
 
 TARGETS := $(LIB)
 # make sure we recompile when the Makefile (and associated
@@ -61,7 +60,7 @@ CONFIG := Makefile
 # to TEST_TARGETS
 all: $(TARGETS) test-bin
 
--include $(SUBDIR_BUILDFILES)
+include $(SUBDIR_BUILDFILES)
 
 test-bin: $(TEST_BIN_TARGETS)
 
@@ -84,9 +83,14 @@ test: $(TESTS)
 	@echo "  CXX   $@"
 	$(CXX) -O$(O) $(CXXFLAGS) -MMD -o $@ -c $<
 
-libdoubletake.so: $(LIB_OBJS) $(CONFIG)
+$(LIB): $(LIB_OBJS) $(CONFIG)
 	@echo "  LD    $@"
 	$(CXX) -shared $(LDFLAGS) $(addprefix -l,$(LIB_DEPS)) -o $@ $(LIB_OBJS)
+
+$(TESTLIB): $(LIB_UNITTEST_OBJS) $(CONFIG)
+	@echo "  AR    $@"
+	$(AR) rc $@ $(LIB_UNITTEST_OBJS)
+	$(RANLIB) $@
 
 # emacs-compatible tagfile generation - for navigating around in emacs
 TAGS: include/*.hh source/*.cpp

@@ -1,7 +1,9 @@
 *.o
 *.d
 libdoubletake.so
+libdttest_s.a
 simple.test
+unit.test
 heaplayers
 TAGS
 *~
