@@ -22,7 +22,7 @@ $(DIR)/%.o: $(DIR)/%.cpp $(CONFIG) $(DIR)/build.mk
 # _all_ of that away.
 $(UNIT_BIN): $(CONFIG) $(UNIT_OBJS) $(TESTLIB) $(DIR)/build.mk
 	@echo "  LD    $@"
-	$(CXX) -O0 $(CFLAGS) $(LDFLAGS) $(UNIT_LDFLAGS) -MMD -o $@ $(UNIT_OBJS)
+	$(CXX) -O0 $(CFLAGS) -MMD -o $@ $(UNIT_OBJS) $(LDFLAGS) $(UNIT_LDFLAGS)
 
 -include $(OBJS:.o=.d)
 

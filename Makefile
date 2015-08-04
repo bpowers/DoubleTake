@@ -89,7 +89,7 @@ $(LIB): $(LIB_OBJS) $(CONFIG)
 
 $(TESTLIB): $(LIB_UNITTEST_OBJS) $(CONFIG)
 	@echo "  AR    $@"
-	$(AR) rc $@ $(LIB_UNITTEST_OBJS)
+	$(AR) rcD $@ $(LIB_UNITTEST_OBJS)
 	$(RANLIB) $@
 
 # emacs-compatible tagfile generation - for navigating around in emacs

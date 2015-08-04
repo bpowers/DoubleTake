@@ -8,6 +8,7 @@
  * @author Emery Berger <http://www.cs.umass.edu/~emery>
  */
 
+#include <map>
 #include <string>
 
 #include "runtime.hh"

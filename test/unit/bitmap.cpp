@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "gtest.h"
@@ -6,8 +7,8 @@
 #include "sentinelmap.hh"
 
 // FIXME: use the ones defined in sentinalmap
-enum { WORDBYTES = sizeof(size_t) };
-enum { WORDBITS = sizeof(size_t) * 8 };
+enum { WORDBYTES = sizeof(intptr_t) };
+enum { WORDBITS  = sizeof(intptr_t) * 8 };
 
 TEST(BitmapTest, SetGet) {
   const int NTRIALS = 1000;
