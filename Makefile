@@ -47,7 +47,7 @@ LIB_UNITTEST_OBJS := $(filter-out $(LIB_GLOBAL_OBJS),$(LIB_OBJS))
 LIB      := libdoubletake.so
 LIB_DEPS := dl pthread
 
-TESTLIB := libdttest_s.a
+TESTLIB  := libdoubletake_test.so
 
 TARGETS := $(LIB)
 # make sure we recompile when the Makefile (and associated
@@ -88,9 +88,8 @@ $(LIB): $(LIB_OBJS) $(CONFIG)
 	$(CXX) -shared $(LDFLAGS) $(addprefix -l,$(LIB_DEPS)) -o $@ $(LIB_OBJS)
 
 $(TESTLIB): $(LIB_UNITTEST_OBJS) $(CONFIG)
-	@echo "  AR    $@"
-	$(AR) rcD $@ $(LIB_UNITTEST_OBJS)
-	$(RANLIB) $@
+	@echo "  LD    $@"
+	$(CXX) -shared $(LDFLAGS) $(addprefix -l,$(LIB_DEPS)) -o $@ $(LIB_UNITTEST_OBJS)
 
 # emacs-compatible tagfile generation - for navigating around in emacs
 TAGS: include/*.hh source/*.cpp
