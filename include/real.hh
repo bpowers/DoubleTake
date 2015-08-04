@@ -48,7 +48,7 @@
 #include <ustat.h>
 #include <utime.h>
 
-#define DECLARE_WRAPPER(name) extern decltype(::name) * name;
+#define DECLARE_WRAPPER(name) extern decltype(::name) * name
 
 namespace Real {
 void initializer();

@@ -13,16 +13,23 @@ AR     = ar
 RANLIB = ranlib
 
 WARNFLAGS := \
-        -Wall -Wextra -Wvariadic-macros \
-        -Wformat -Wundef -Wpointer-arith \
-        -Wcast-qual -Wwrite-strings -Wsign-compare \
+        -Wall -Wextra -Wformat -Wsign-compare \
+        -Werror -Wundef \
+        -Wpointer-arith \
+        -Wvariadic-macros \
+        -Wcast-qual -Wwrite-strings \
         -Wstrict-aliasing=2 -Wno-unused-parameter \
-        -Werror -Wno-error=unused-function \
+        -Wno-error=unused-function \
         -Wno-gnu-zero-variadic-macro-arguments \
         -Wno-nested-anon-types -Wno-c99-extensions \
         -Wno-unused-variable -Wno-unused-private-field
 
-CFLAGS   := -g -fPIC -pedantic -fno-omit-frame-pointer -Iinclude -Iheaplayers $(WARNFLAGS)
+FEATURE_FLAGS := \
+        -DDETECT_OVERFLOW \
+        -DDETECT_MEMORY_LEAKS \
+#       -DDETECT_USE_AFTER_FREE \
+
+CFLAGS   := -g -fPIC -pedantic -fno-omit-frame-pointer -Iinclude -Iheaplayers $(WARNFLAGS) $(FEATURE_FLAGS)
 CXXFLAGS := -std=c++11 $(CFLAGS)
 ASFLAGS  := $(WARNFLAGS)
 # this is for generic linker flags - target specific $LIB dependencies
