@@ -1,6 +1,5 @@
 #include <pthread.h>
 #include <stdatomic.h>
-#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -8,7 +7,7 @@
     This program performs the following sequence of events:
 
     thread 1            thread 2
-     (main)           (worker_main
+     (main)           (worker_main)
 
     pthread_create                
     malloc(array)                 
@@ -23,16 +22,40 @@
     pthread_join
     exit
 
+    This order-of-events is enforced through atomic reads + writes of
+    a global sequence number, avoiding unspecified behavior as well as
+    the use of mutexes, so that we don't trigger any intermediate
+    epoch expirations.
+
     This is a classic use-after-free, and is properly identified as
     such by valgrind:
 
     ==15506== Invalid write of size 1
-    ==15506==    at 0x4008B5: main (main.c:99)
+    ==15506==    at 0x4008B5: main (main.c:122)
     ==15506==  Address 0x53ed040 is 0 bytes inside a block of size 255 free'd
     ==15506==    at 0x4C2B1F0: free (in /usr/lib64/valgrind/vgpreload_memcheck-amd64-linux.so)
-    ==15506==    by 0x400794: worker_main (main.c:63)
+    ==15506==    by 0x400794: worker_main (main.c:86)
     ==15506==    by 0x4E3D333: start_thread (pthread_create.c:333)
- */
+
+    As well as tsan:
+
+    ==================
+    WARNING: ThreadSanitizer: heap-use-after-free (pid=16214)
+      Write of size 1 at 0x7d4000007f00 by main thread:
+        #0 main /home/bpowers/plasma/DoubleTake/test/simple_mt_uaf/main.c:122:2 (simple.test+0x0000004b86a3)
+
+        n  Previous write of size 8 at 0x7d4000007f00 by thread T1:
+        #0 free /var/tmp/portage/sys-devel/llvm-3.6.2/work/llvm-3.6.2.src/projects/compiler-rt/lib/tsan/rtl/tsan_interceptors.cc:538:3 (simple.test+0x00000045267b)
+        #1 worker_main /home/bpowers/plasma/DoubleTake/test/simple_mt_uaf/main.c:86:2 (simple.test+0x0000004b846c)
+
+      Thread T1 (tid=16216, running) created by main thread at:
+        #0 pthread_create /var/tmp/portage/sys-devel/llvm-3.6.2/work/llvm-3.6.2.src/projects/compiler-rt/lib/tsan/rtl/tsan_interceptors.cc:896:3 (simple.test+0x000000455f51)
+        #1 main /home/bpowers/plasma/DoubleTake/test/simple_mt_uaf/main.c:107:2 (simple.test+0x0000004b85bb)
+
+    SUMMARY: ThreadSanitizer: heap-use-after-free /home/bpowers/plasma/DoubleTake/test/simple_mt_uaf/main.c:103 main
+    ==================
+    ThreadSanitizer: reported 1 warnings
+*/
 
 #define ARRAY_SIZE   0xff
 
