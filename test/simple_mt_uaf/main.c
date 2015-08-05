@@ -52,7 +52,7 @@
         #0 pthread_create /var/tmp/portage/sys-devel/llvm-3.6.2/work/llvm-3.6.2.src/projects/compiler-rt/lib/tsan/rtl/tsan_interceptors.cc:896:3 (simple.test+0x000000455f51)
         #1 main /home/bpowers/plasma/DoubleTake/test/simple_mt_uaf/main.c:107:2 (simple.test+0x0000004b85bb)
 
-    SUMMARY: ThreadSanitizer: heap-use-after-free /home/bpowers/plasma/DoubleTake/test/simple_mt_uaf/main.c:103 main
+    SUMMARY: ThreadSanitizer: heap-use-after-free /home/bpowers/plasma/DoubleTake/test/simple_mt_uaf/main.c:122 main
     ==================
     ThreadSanitizer: reported 1 warnings
 */
