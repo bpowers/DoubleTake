@@ -29,8 +29,12 @@ FEATURE_FLAGS := \
         -DDETECT_MEMORY_LEAKS \
 #       -DDETECT_USE_AFTER_FREE \
 
-CFLAGS   := -g -fPIC -pedantic -fno-omit-frame-pointer -Iinclude -Iheaplayers $(WARNFLAGS) $(FEATURE_FLAGS)
-CXXFLAGS := -std=c++11 $(CFLAGS)
+# want stdatomic.h in C, which is a c11 feature
+CVER     := c11
+CXXVER   := c++11
+
+CFLAGS   := -g -fPIC -pedantic -fno-omit-frame-pointer -Iinclude -Iheaplayers $(WARNFLAGS) $(FEATURE_FLAGS) -D_BSD_SOURCE -D_DEFAULT_SOURCE
+CXXFLAGS := -std=$(CXXVER) $(CFLAGS)
 ASFLAGS  := $(WARNFLAGS)
 # this is for generic linker flags - target specific $LIB dependencies
 # are added later.
@@ -84,7 +88,7 @@ test: $(TESTS)
 
 %.o: %.c $(CONFIG)
 	@echo "  CC    $@"
-	$(CC) -O$(O) $(CFLAGS) -MMD -o $@ -c $<
+	$(CC) -O$(O) -std=$(CVER) $(CFLAGS) -MMD -o $@ -c $<
 
 %.o: %.cpp $(CONFIG)
 	@echo "  CXX   $@"
