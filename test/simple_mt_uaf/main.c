@@ -4,6 +4,36 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+/*
+    This program performs the following sequence of events:
+
+    thread 1            thread 2
+     (main)           (worker_main
+
+    pthread_create                
+    malloc(array)                 
+
+                      write(array)
+                      free(array)
+
+    write(array)
+
+                      pthread_exit
+
+    pthread_join
+    exit
+
+    This is a classic use-after-free, and is properly identified as
+    such by valgrind:
+
+    ==15506== Invalid write of size 1
+    ==15506==    at 0x4008B5: main (main.c:99)
+    ==15506==  Address 0x53ed040 is 0 bytes inside a block of size 255 free'd
+    ==15506==    at 0x4C2B1F0: free (in /usr/lib64/valgrind/vgpreload_memcheck-amd64-linux.so)
+    ==15506==    by 0x400794: worker_main (main.c:63)
+    ==15506==    by 0x4E3D333: start_thread (pthread_create.c:333)
+ */
+
 #define ARRAY_SIZE   0xff
 
 // sequence number - use this to coordinate memory operation orders
@@ -39,6 +69,7 @@ worker_main(void *arg) {
 	while (atomic_load_explicit(&g_seq, memory_order_acquire) != 3)
 		spin();
 
+	pthread_exit(NULL);
 	return NULL;
 }
 
