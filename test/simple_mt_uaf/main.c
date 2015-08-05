@@ -92,7 +92,7 @@ worker_main(void *arg) {
 	while (atomic_load_explicit(&g_seq, memory_order_acquire) != 3)
 		spin();
 
-	pthread_exit(NULL);
+	//pthread_exit(NULL);
 	return NULL;
 }
 
