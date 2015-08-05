@@ -36,6 +36,46 @@ namespace doubletake {
   std::atomic<enum SystemPhase> phase;
 };
 
+// the global runtime lock
+static pthread_mutex_t rtLock = PTHREAD_MUTEX_INITIALIZER;
+
+void doubletake::lock() {
+  sigset_t blocked, current;
+  struct timespec sleep = {
+    .tv_sec = 0,
+    .tv_nsec = 10000000, // 1/100 of a second
+  };
+
+  sigemptyset(&blocked);
+  sigaddset(&blocked, SIGUSR2);
+
+  // FIXME: we need to make sure we're not interrupted in our call to
+  // pthread_mutex_(try)lock, because if we are and rollback it could
+  // corrupt the state of the mutex, causing deadlocks.  This could
+  // probably be done better.  Maybe we could use SIGUSR1?
+  while (true) {
+    Real::sigprocmask(SIG_BLOCK, &blocked, &current);
+
+    // a return value of 0 means we acquired the lock, great!
+    if (!Real::pthread_mutex_trylock(&rtLock))
+      break;
+
+    Real::sigprocmask(SIG_SETMASK, &current, nullptr);
+    Real::nanosleep(&sleep, nullptr);
+  }
+}
+
+void doubletake::unlock() {
+  sigset_t blocked;
+
+  Real::pthread_mutex_unlock(&rtLock);
+
+  sigemptyset(&blocked);
+  sigaddset(&blocked, SIGUSR2);
+
+  Real::sigprocmask(SIG_UNBLOCK, &blocked, nullptr);
+}
+
 // Some global information.
 std::atomic_int g_numOfEnds;
 

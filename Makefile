@@ -54,12 +54,12 @@ LIB_UNITTEST_OBJS := $(filter-out $(LIB_GLOBAL_OBJS),$(LIB_OBJS))
 LIB      := libdoubletake.so
 LIB_DEPS := dl pthread
 
-TESTLIB := libdttest_s.a
+TESTLIB  := libdttest_s.a
 
-TARGETS := $(LIB)
+TARGETS   = $(LIB)
 # make sure we recompile when the Makefile (and associated
 # CFLAGS/LDFLAGS change)
-CONFIG := Makefile
+CONFIG   := Makefile
 
 # test-bin is a bit of a hack so that we can declare the all target
 # first (this making it the default target) before we include the
