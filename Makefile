@@ -13,18 +13,15 @@ AR     = ar
 RANLIB = ranlib
 
 WARNFLAGS := \
-        -Wall -Wextra -Wformat -Wsign-compare \
-        -Werror -Wundef \
-        -Wpointer-arith \
-        -Wvariadic-macros \
-        -Wcast-qual -Wwrite-strings \
-        -Wstrict-aliasing=2 -Wno-unused-parameter \
-        -Wno-error=unused-function \
-        -Wno-gnu-zero-variadic-macro-arguments \
-        -Wno-nested-anon-types -Wno-c99-extensions \
-        -Wno-unused-variable -Wno-unused-private-field
+        -Werror \
+        -Wall -Wextra -Wpedantic \
+        -Wundef \
+        -Wno-unused-parameter \
+        -Wno-format-pedantic \
+        -Wno-nested-anon-types
 
 FEATURE_FLAGS := \
+        -DDEBUG_LEVEL=3 \
         -DDETECT_OVERFLOW \
         -DDETECT_USAGE_AFTER_FREE \
 #        -DDETECT_MEMORY_LEAKS \
@@ -33,7 +30,7 @@ FEATURE_FLAGS := \
 CVER     := c11
 CXXVER   := c++11
 
-CFLAGS   := -g -fPIC -pedantic -fno-omit-frame-pointer -Iinclude -Iheaplayers $(WARNFLAGS) $(FEATURE_FLAGS) -D_BSD_SOURCE -D_DEFAULT_SOURCE
+CFLAGS   := -g -fPIC -pedantic -fno-omit-frame-pointer -Iinclude -Iheaplayers $(WARNFLAGS) $(FEATURE_FLAGS) -D_DEFAULT_SOURCE -D_BSD_SOURCE
 CXXFLAGS := -std=$(CXXVER) $(CFLAGS)
 ASFLAGS  := $(WARNFLAGS)
 # this is for generic linker flags - target specific $LIB dependencies

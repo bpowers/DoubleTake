@@ -10,7 +10,7 @@ UNIT_OBJS        := $(patsubst %.cpp,%.o,$(UNIT_SRCS))
 UNIT_LDFLAGS     += -L. -ldttest_s -ldl -lpthread
 
 # -Wextra and -Wundef cause clang to bail out in the gtest headers
-GTEST_CXXFLAGS   := $(filter-out -Wextra,$(CXXFLAGS:-Wundef=)) -DGTEST_HAS_PTHREAD=1
+GTEST_CXXFLAGS   := $(filter-out -Wextra,$(CXXFLAGS:-Wundef=)) -Wno-unused-const-variable -DGTEST_HAS_PTHREAD=1
 
 $(DIR)/%.o: $(DIR)/%.cpp $(CONFIG) $(DIR)/build.mk
 	@echo "  CXX   $@"
