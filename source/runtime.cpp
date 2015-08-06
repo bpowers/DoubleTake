@@ -41,10 +41,9 @@ static pthread_mutex_t rtLock = PTHREAD_MUTEX_INITIALIZER;
 
 void doubletake::lock() {
   sigset_t blocked, current;
-  struct timespec sleep = {
-    .tv_sec = 0,
-    .tv_nsec = 10000000, // 1/100 of a second
-  };
+  struct timespec sleep;
+  sleep.tv_sec = 0;
+  sleep.tv_nsec = 10000000; // 1/100 of a second
 
   sigemptyset(&blocked);
   sigaddset(&blocked, SIGUSR2);
