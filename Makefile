@@ -27,7 +27,7 @@ WARNFLAGS := \
 FEATURE_FLAGS := \
         -DDETECT_OVERFLOW \
         -DDETECT_USAGE_AFTER_FREE \
-        -DDETECT_MEMORY_LEAKS \
+#        -DDETECT_MEMORY_LEAKS \
 
 # want stdatomic.h in C, which is a c11 feature
 CVER     := c11
