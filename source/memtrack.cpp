@@ -33,7 +33,10 @@ void memtrack::check(void* start, size_t size, memTrackType type) {
       int depth = backtrace(callsites, xdefines::CALLSITE_MAXIMUM_LENGTH);
       xthread::enableCheck();
 
-      object->saveCallsite(size, type, depth, (void**)&callsites[0]);
+      size_t off;
+      for (off = 0; depth - off > 0 && doubletake::isLib(callsites[off]); off++) {}
+
+      object->saveCallsite(size, type, depth-off, (void**)&callsites[off]);
 #ifndef EVALUATING_PERF
 			// Since printing can cause SPEC2006 benchmarks to fail, thus comment them for evaluating perf.
       // Insert or print.

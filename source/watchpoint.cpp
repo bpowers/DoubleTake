@@ -247,7 +247,10 @@ void watchpoint::trapHandler(int /* sig */, siginfo_t* /* siginfo */, void* cont
   size_t depth = (size_t)backtrace(callsites, xdefines::CALLSITE_MAXIMUM_LENGTH);
   xthread::enableCheck();
 
-  doubletake::Trace stack(depth, callsites);
+  size_t off;
+  for (off = 0; depth - off > 0 && callsites[off] != addr; off++) {}
+
+  doubletake::Trace stack(depth - off, &callsites[off]);
 
   // If current callsite is the same as the previous one, we do not want to report again.
   if(watchpoint::getInstance().checkAndSaveCallsite(object, depth, (void**)&callsites)) {
