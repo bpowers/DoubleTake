@@ -26,27 +26,13 @@ namespace doubletake {
   void printf(const char *fmt, ...) __printf_like(1, 2);
 }
 
-#define __PRV(n, fmt, ...) doubletake::logf(__FILE__, __LINE__, n, fmt, __VA_ARGS__)
-#define __PR0(n, msg)      doubletake::logf(__FILE__, __LINE__, n, msg)
-#define __FATALV(fmt, ...) doubletake::fatalf(__FILE__, __LINE__, fmt, __VA_ARGS__)
-#define __FATAL0(msg)      doubletake::fatalf(__FILE__, __LINE__, msg)
-#define __PRINTV(fmt, ...) doubletake::printf(fmt, __VA_ARGS__)
-#define __PRINT0(msg)      doubletake::printf(msg)
-
-#define __PRPREFIX_X(a,b,c,d,e,f,g,h,n,...) n
-#define __PRPREFIX(...) __PRPREFIX_X(__VA_ARGS__,V,V,V,V,V,V,V,0,)
-
-#define __PRCONCAT_X(a,b) a##b
-#define __PRCONCAT(a,b) __PRCONCAT_X(a,b)
-#define __VAFN(fn, ...) __PRCONCAT(fn,__PRPREFIX(__VA_ARGS__))
-
 /**
  * Print status-information message: level 0
  */
-#define _PR(n, ...)                                                                           \
+#define _PR(n, ...)                                                                                \
   {                                                                                                \
     if(DT_LOG_LEVEL.load() < n)                                                                    \
-      __VAFN(__PR, __VA_ARGS__)(n, __VA_ARGS__);                                              \
+      doubletake::logf(__FILE__, __LINE__, n, __VA_ARGS__);                                        \
   }
 
 #ifdef NDEBUG
@@ -61,8 +47,8 @@ namespace doubletake {
 
 #define PRERR(...) _PR(4, __VA_ARGS__)
 
-#define FATAL(...) __VAFN(__FATAL, __VA_ARGS__)(__VA_ARGS__)
-#define PRINT(...) __VAFN(__PRINT, __VA_ARGS__)(__VA_ARGS__)
+#define FATAL(...) doubletake::fatalf(__FILE__, __LINE__, __VA_ARGS__)
+#define PRINT(...) doubletake::printf(__VA_ARGS__)
 
 // Check a condition. If false, print an error message and abort
 #define REQUIRE(cond, ...)                                                                         \
