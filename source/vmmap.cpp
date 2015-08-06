@@ -67,8 +67,28 @@ static std::ifstream& operator>>(std::ifstream& f, mapping& m) {
 }
 
 
-VMMap::VMMap() : _doubletakeMapped(false), _pid(getpid()) {}
-VMMap::VMMap(int pid) : _doubletakeMapped(false), _pid(pid) {}
+  std::map<interval, mapping, std::less<interval>,
+           HL::STLAllocator<std::pair<interval, mapping>, InternalHeapAllocator>> _mappings;
+
+  std::string _exe;
+  void* _appTextStart;
+  void* _appTextEnd;
+  void* _doubletakeStart;
+  void* _doubletakeEnd;
+  bool _doubletakeMapped;
+  // PID of thread this instance was constructed on, or alternatively
+  // the PID passed to the constructor.  Used for stack
+  // identification.
+  pid_t _pid;
+
+VMMap::VMMap()
+  : _mappings(), _exe(""), _appTextStart(nullptr), _appTextEnd(nullptr),
+    _doubletakeStart(nullptr), _doubletakeEnd(nullptr),
+    _doubletakeMapped(false), _pid(getpid()) {}
+VMMap::VMMap(int pid)
+  : _mappings(), _exe(""), _appTextStart(nullptr), _appTextEnd(nullptr),
+    _doubletakeStart(nullptr), _doubletakeEnd(nullptr),
+    _doubletakeMapped(false), _pid(pid) {}
 
 bool VMMap::isDoubleTake(void *pcaddr) const {
   return _doubletakeMapped && ((pcaddr >= _doubletakeStart) && (pcaddr <= _doubletakeEnd));
@@ -98,8 +118,6 @@ void VMMap::initialize() {
 
   // Build the mappings data structure
   ifstream maps_file(procMaps);
-
-  _doubletakeMapped = false;
 
   while(maps_file.good() && !maps_file.eof()) {
     mapping m;
