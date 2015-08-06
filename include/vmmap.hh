@@ -45,6 +45,7 @@ public:
   bool isStack() const { return _isStack; }
   bool isGlobals() const { return _isGlobals; }
 
+  size_t getOffset() const { return _offset; }
   uintptr_t getBase() const { return _base; }
   uintptr_t getLimit() const { return _limit; }
 
