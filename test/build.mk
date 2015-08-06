@@ -5,7 +5,7 @@ TESTS += simple-tests
 
 SIMPLE_TESTS   := simple_leak simple_overflow simple_uaf simple_mt_uaf
 SIMPLE_TARGETS := $(addprefix $(DIR)/, $(addsuffix /simple.test, $(SIMPLE_TESTS)))
-SIMPLE_LDFLAGS += -L. -ldoubletake -lpthread
+SIMPLE_LDFLAGS += -L. -lpthread
 
 # no optimization - clang is smart enough to see in the 'use after
 # free' test that the object is allocated, referenced, freed, and
@@ -18,8 +18,8 @@ SIMPLE_LDFLAGS += -L. -ldoubletake -lpthread
 -include $(SIMPLE_TARGETS:.test=.d)
 
 $(SIMPLE_TESTS): $(SIMPLE_TARGETS)
-	LD_LIBRARY_PATH=. test/$@/simple.test
-#	LD_PRELOAD=./libdoubletake.so test/$@/simple.test
+	LD_PRELOAD=./libdoubletake.so test/$@/simple.test
+#	LD_LIBRARY_PATH=. test/$@/simple.test
 
 simple-tests: $(SIMPLE_TESTS)
 
