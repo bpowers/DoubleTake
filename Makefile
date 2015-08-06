@@ -112,7 +112,7 @@ clean:
 	find . -name '*.gcno' -print0 | xargs -0 rm -f
 	find . -name '*.gcda' -print0 | xargs -0 rm -f
 	find . -name '*.gcov' -print0 | xargs -0 rm -f
-	rm -f $(TARGETS) $(TEST_BIN_TARGETS)
+	rm -f $(TARGETS) $(TEST_BIN_TARGETS) $(TESTLIB)
 
 distclean: clean
 	find . -name '*.d' -print0 | xargs -0 rm -f
