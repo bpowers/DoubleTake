@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define USED(v) ((void)(v))
+
 extern void overflow (void * buf, int actualSize, int overflowSize);
 
 int main(int argc, char** argv) {
@@ -15,6 +17,8 @@ int main(int argc, char** argv) {
   overflow (p, sizeof(char), 4);
 
   fprintf(stderr, "Right before the return of main function\n");
+
+  USED(buff);
 	
   return 0;
 }
