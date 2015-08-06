@@ -126,7 +126,8 @@ public:
   enum { THREAD_MAP_SIZE = 1024 };
   enum { MAX_STACK_SIZE = 0xa00000UL };  // 64pages
   enum { TEMP_STACK_SIZE = 0xa00000UL }; // 64 pages
-  enum { NUM_GLOBALS = 10 }; // At least, we need app globals, libc globals and libthread globals.
+  // FIXME: getGlobalRegions shouldn't implicitly depend on this
+  enum { NUM_GLOBALS = 64 }; // At least, we need app globals, libc globals and libthread globals.
   // enum { MAX_GLOBALS_SIZE = 1048576UL * 10 };
   enum { CACHE_LINE_SIZE = 64 };
 
@@ -139,7 +140,7 @@ public:
   enum { MAGIC_BYTE_NOT_ALIGNED = 0x7E };
   enum { FREE_OBJECT_CANARY_WORDS = 16 };
   enum { FREE_OBJECT_CANARY_SIZE = 16 * WORD_SIZE };
-  enum { CALLSITE_MAXIMUM_LENGTH = 10 };
+  enum { CALLSITE_MAXIMUM_LENGTH = 32 };
 
   // FIXME: the following definitions are sensitive to
   // glibc version (possibly?)
