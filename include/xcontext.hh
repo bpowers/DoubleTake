@@ -283,7 +283,6 @@ public:
     memcpy(oldContext->getPrivateStart(), oldContext->getBackupStart(),
            oldContext->getBackupSize());
 
-    PRINF("Thread %p is calling actual setcontext", (void*)pthread_self());
     // After recovery of the stack, we can call setcontext to switch to original stack.
     setcontext(oldContext->getContext());
   }
